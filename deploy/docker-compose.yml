@@ -22,7 +22,7 @@ services:
     networks: [app-net]
 
   frontend:
-    build: ../frontend/app
+    build: ../frontend
     depends_on: [api-gateway]
     ports:
       - "5173:80"
