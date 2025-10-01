@@ -2,6 +2,7 @@ package ru.ixlax.authservice.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import ru.ixlax.authservice.domain.User;
@@ -36,7 +37,9 @@ public class JwtService {
                 .claim("role", user.getRole().name())
                 .build();
 
-        return encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        var header = JwsHeader.with(MacAlgorithm.HS256).build(); // ВАЖНО
+
+        return encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
     }
 
     public Jwt parse(String token) throws JwtException {
