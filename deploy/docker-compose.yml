@@ -5,6 +5,9 @@ networks:
     name: ${APP_NET:-upme_net}
     driver: bridge
 
+volumes:
+  db-data: {}
+
 services:
   api-gateway:
     build: ../backend/gateway/api-gateway
@@ -46,6 +49,7 @@ services:
       interval: 20s
       timeout: 10s
       retries: 5
+    networks: [ app-net ]
     volumes:
       - db-data:/var/lib/postgresql/data
 
