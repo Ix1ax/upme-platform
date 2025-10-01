@@ -8,3 +8,4 @@ public record TokenResponse (
     public static TokenResponse bearer(String accessToken, String refreshToken) {
         return new TokenResponse(accessToken, refreshToken, "Bearer");
     }
+}
