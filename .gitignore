@@ -1,0 +1,16 @@
+.DS_Store
+.idea/
+.vscode/
+target/
+build/
+out/
+.mvn/wrapper/maven-wrapper.jar
+*.iml
+*.class
+.gradle/
+node_modules/
+dist/
+
+.env
+**/keys/*
+!**/keys/README.md
