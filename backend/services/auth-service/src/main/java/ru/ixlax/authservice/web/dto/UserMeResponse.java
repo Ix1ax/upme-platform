@@ -1,4 +1,10 @@
 package ru.ixlax.authservice.web.dto;
 
-public class UserMeResponse {
-}
+import java.util.UUID;
+
+public record UserMeResponse(
+        UUID id,
+        String name,
+        String email,
+        String role
+) {}
