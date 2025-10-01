@@ -2,6 +2,8 @@ server:
   port: ${GATEWAY_PORT:8080}
 
 spring:
+  main:
+    web-application-type: reactive
   cloud:
     gateway:
       globalcors:
