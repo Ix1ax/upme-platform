@@ -47,14 +47,14 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger",
                                 "/swagger/**",
-                                "/auth/**"
+                                "/auth/register",
+                                "/auth/login",
+                                "/auth/refresh"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
-
-        http.authenticationProvider(daoAuthProvider());
-        http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(daoAuthProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

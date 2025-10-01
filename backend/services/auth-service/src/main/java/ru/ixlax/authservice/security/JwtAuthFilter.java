@@ -25,9 +25,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
-    // Пути, которые пропускаем без проверки
     private static final String[] WHITELIST = {
-            "/auth/", "/auth",
             "/v3/api-docs", "/v3/api-docs/",
             "/swagger-ui", "/swagger-ui/",
             "/swagger-ui.html",

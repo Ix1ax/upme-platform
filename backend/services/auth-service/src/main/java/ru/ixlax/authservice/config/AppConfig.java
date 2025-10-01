@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
+import java.util.HexFormat;
 
 @Configuration
 public class AppConfig {
@@ -23,9 +24,9 @@ public class AppConfig {
     }
 
     @Bean
-    public SecretKeySpec jwtHmacKey(@Value("${jwt.secret}") String base64Secret) {
-        byte[] keyBytes = Base64.getDecoder().decode(base64Secret);
-        return new SecretKeySpec(keyBytes, "HmacSHA256");
+    SecretKeySpec jwtHmacKey(@Value("${JWT_SECRET}") String hex) {
+        byte[] key = HexFormat.of().parseHex(hex);
+        return new SecretKeySpec(key, "HmacSHA256");
     }
 
     @Bean
