@@ -18,19 +18,15 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<!-- Для Boot 3.5 берём актуальный train. Если 2025.0.0 у тебя работает — ок.
-             Если будут мэвен-конфликты — замени на 2024.0.3 -->
 		<spring-cloud.version>2025.0.0</spring-cloud.version>
 	</properties>
 
 	<dependencies>
-		<!-- Cloud Gateway (reactive) -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-gateway</artifactId>
 		</dependency>
 
-		<!-- WebFlux, а НЕ spring-boot-starter-web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
@@ -46,7 +42,6 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-		<!-- опционально: Swagger для WebFlux -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>

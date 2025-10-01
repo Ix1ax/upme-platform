@@ -4,22 +4,31 @@ server:
 spring:
   main:
     web-application-type: reactive
+
   cloud:
     gateway:
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: ${CORS_ORIGINS:http://localhost:5173,http://localhost}
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: true
-      routes:
-        - id: auth
-          uri: ${AUTH_URL:http://auth-service:8080}
-          predicates:
-            - Path=/auth/**
-          filters:
-            - StripPrefix=0
+      server:
+        webflux:
+          # --- CORS ---
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost}
+                allowed-methods: "*"
+                allowed-headers: "*"
+                allow-credentials: true
+
+          # --- ROUTES ---
+          routes:
+            - id: auth
+              uri: ${AUTH_URL:http://auth-service:8080}
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=0
 
 management:
-  endpoints.web.exposure.include: health,info
+  endpoints:
+    web:
+      exposure:
+        include: health,info
