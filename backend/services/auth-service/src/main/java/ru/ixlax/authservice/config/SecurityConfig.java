@@ -14,8 +14,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(reg -> reg.anyRequest().permitAll())
-                .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults())); // позже реально настроим
+                .authorizeHttpRequests(reg -> reg.anyRequest().permitAll());
+        //        .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));
         return http.build();
     }
 }
