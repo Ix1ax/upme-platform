@@ -12,10 +12,10 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiError {
     OffsetDateTime timestamp;
-    int status;             // HTTP status code
-    String error;           // reason phrase (e.g., "Bad Request")
-    String message;         // human-readable message
-    String path;            // request path
-    Map<String, String> validation; // field -> message (для валидации)
-    String code;            // опциональный бизнес-код ошибки
+    int status;           
+    String error;    
+    String message;        
+    String path;         
+    Map<String, String> validation; 
+    String code;          
 }
