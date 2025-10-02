@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 import ru.ixlax.authservice.domain.RefreshToken;
 import ru.ixlax.authservice.domain.Role;
 import ru.ixlax.authservice.domain.User;
+import ru.ixlax.authservice.exception.custom.RefreshTokenBadRequest;
+import ru.ixlax.authservice.exception.custom.RefreshTokenExpiredException;
+import ru.ixlax.authservice.exception.custom.UserAlreadyExistsException;
+import ru.ixlax.authservice.exception.custom.UserBadRequestException;
 import ru.ixlax.authservice.repository.RefreshTokenRepository;
 import ru.ixlax.authservice.repository.UserRepository;
 import ru.ixlax.authservice.security.JwtService;
@@ -15,7 +19,6 @@ import ru.ixlax.authservice.web.dto.RefreshRequest;
 import ru.ixlax.authservice.web.dto.RegisterRequest;
 import ru.ixlax.authservice.web.dto.TokenResponse;
 
-import java.sql.Ref;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -31,13 +34,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenResponse register(RegisterRequest req) {
         if (Boolean.FALSE.equals(req.getIsAcceptPolicy())) {
-            throw new IllegalArgumentException("Не принята политика обработки данных");
+            throw new UserBadRequestException("Не принята политика обработки данных");
         }
         if (users.existsByEmail(req.getEmail())) {
-            throw new IllegalArgumentException("Email уже используется");
+            throw new UserAlreadyExistsException(req.getEmail());
         }
         if (!req.getPassword().equals(req.getConfirmPassword())) {
-            throw new IllegalArgumentException("Пароли не совпадают");
+            throw new UserBadRequestException("Пароли не совпадают");
         }
 
         Role role = Role.valueOf(req.getRole().toUpperCase());
@@ -47,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(req.getEmail());
         user.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         user.setRole(role);
-        users.save(user); // id заполнится
+        users.save(user);
 
         refreshTokens.findByUser_Id(user.getId()).ifPresent(refreshTokens::delete);
 
@@ -64,10 +67,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenResponse login(LoginRequest req) {
         var user = users.findByEmail(req.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Неверный email или пароль"));
+                .orElseThrow(() -> new UserBadRequestException("Неверный email или пароль"));
 
         if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Неверный email или пароль");
+            throw new UserBadRequestException("Неверный email или пароль");
         }
 
         refreshTokens.findByUser_Id(user.getId()).ifPresent(refreshTokens::delete);
@@ -85,11 +88,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenResponse refresh(RefreshRequest req) {
         var old = refreshTokens.findByToken(req.refreshToken())
-                .orElseThrow(() -> new IllegalArgumentException("Неверный refresh токен"));
+                .orElseThrow(() -> new RefreshTokenBadRequest("Неверный refresh токен"));
 
         if (old.isExpired()) {
             refreshTokens.delete(old);
-            throw new IllegalArgumentException("Refresh токен истёк");
+            throw new RefreshTokenExpiredException("Refresh токен истёк");
         }
 
         var user = old.getUser();
@@ -108,4 +111,5 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String refreshToken) {
         refreshTokens.findByToken(refreshToken).ifPresent(refreshTokens::delete);
     }
+
 }
