@@ -1,8 +1,11 @@
 import {Outlet} from "react-router-dom";
+import {MantineProvider} from "@mantine/core";
 
 
 const App = () => (
-    <Outlet />
+    <MantineProvider defaultColorScheme="light">
+        <Outlet />
+    </MantineProvider>
 )
 
 export default App;

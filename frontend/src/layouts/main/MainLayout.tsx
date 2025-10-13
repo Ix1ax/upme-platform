@@ -1,23 +1,21 @@
 import type {ReactNode} from "react";
 import {AppShell} from "@mantine/core";
-import styles from './AuthLayout.module.css'
-
 import Header from "@/widgets/Header/Header";
-
 
 interface AuthLayoutProps {
     children?: ReactNode;
 }
 
-const AuthLayout = ({children} : AuthLayoutProps) => {
+const MainLayout = ({children} : AuthLayoutProps) => {
     return (
         <AppShell header={{ height: 60 }}>
             <Header />
-            <AppShell.Main className={styles.main ?? ""}>
+
+            <AppShell.Main>
                 {children}
             </AppShell.Main>
         </AppShell>
     )
 }
 
-export default AuthLayout;
+export default MainLayout;
