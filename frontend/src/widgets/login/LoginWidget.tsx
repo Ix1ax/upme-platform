@@ -1,9 +1,12 @@
-import {observer} from "mobx-react-lite";
+import AuthLayout from "@/layouts/auth/AuthLayout";
+import Login from "@/features/auth/login/ui/Login"
 
-const LoginWidget = observer(() => {
+const LoginWidget = () => {
     return (
-        <h1>Login</h1>
+        <AuthLayout>
+            <Login />
+        </AuthLayout>
     )
-})
+}
 
 export default LoginWidget;
