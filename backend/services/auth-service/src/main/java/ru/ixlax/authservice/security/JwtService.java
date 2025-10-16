@@ -2,6 +2,7 @@ package ru.ixlax.authservice.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;      // <— импортируй
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import ru.ixlax.authservice.domain.User;
@@ -36,24 +37,12 @@ public class JwtService {
                 .claim("role", user.getRole().name())
                 .build();
 
-        return encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        var headers = JwsHeader.with(MacAlgorithm.HS256).build();
+
+        return encoder.encode(JwtEncoderParameters.from(headers, claims)).getTokenValue();
     }
 
-    public Jwt parse(String token) throws JwtException {
-        return decoder.decode(token);
-    }
-
-    public boolean isValid(String token) {
-        try {
-            decoder.decode(token);
-            return true;
-        } catch (JwtException ex) {
-            return false;
-        }
-    }
-
-    public Map<String, Object> getClaims(String token) {
-        Jwt jwt = decoder.decode(token);
-        return jwt.getClaims();
-    }
+    public Jwt parse(String token) throws JwtException { return decoder.decode(token); }
+    public boolean isValid(String token) { try { decoder.decode(token); return true; } catch (JwtException ex) { return false; } }
+    public Map<String, Object> getClaims(String token) { return decoder.decode(token).getClaims(); }
 }

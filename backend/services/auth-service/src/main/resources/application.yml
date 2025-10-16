@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   datasource:
@@ -12,11 +12,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-
-  jwt:
-    secret: ${JWT_SECRET}
-    access-ttl-seconds: ${JWT_ACCESS_TTL_SECONDS:900}
-    issuer: upme-auth
 
 springdoc:
   api-docs.enabled: true
