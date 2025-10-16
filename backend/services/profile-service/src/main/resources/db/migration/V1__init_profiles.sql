@@ -1,0 +1,12 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS profiles (
+    id UUID PRIMARY KEY,
+    display_name VARCHAR(255),
+    bio TEXT,
+    avatar_url TEXT,
+    city VARCHAR(255),
+    phone VARCHAR(32),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
