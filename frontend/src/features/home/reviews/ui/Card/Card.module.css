@@ -1,0 +1,8 @@
+.comment {
+    background-color: #edeff5 !important;
+}
+.card {
+    min-width: 350px;
+    flex: 0 0 400px;
+    min-height: 200px;
+}

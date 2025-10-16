@@ -1,18 +1,12 @@
-import {
-    Button,
-    createTheme,
-    Input,
-    MantineProvider,
-    TextInput,
-} from '@mantine/core';
+import { Button, createTheme, Input, MantineProvider, TextInput, Container } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import type {ReactNode} from "react";
+import type { ReactNode } from 'react';
 
 interface StyleProviderProps {
     children?: ReactNode;
 }
 
-const StyleProvider = ({ children } : StyleProviderProps) => {
+const StyleProvider = ({ children }: StyleProviderProps) => {
     const theme = createTheme({
         primaryColor: 'blue',
         components: {
@@ -31,13 +25,19 @@ const StyleProvider = ({ children } : StyleProviderProps) => {
                     radius: 'md',
                 },
             }),
+            Container: Container.extend({
+                defaultProps: {
+                    size: 'xl',
+                    px: '1rem',
+                },
+            }),
         },
     });
 
     return (
         <MantineProvider theme={theme} defaultColorScheme="light">
             {children}
-            <Notifications position="top-right"/>
+            <Notifications position="top-right" />
         </MantineProvider>
     );
 };

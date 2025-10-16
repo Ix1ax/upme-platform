@@ -5,6 +5,7 @@ import HomePage from "@/pages/home/HomePage";
 import LoginPage from "@/pages/login/LoginPage";
 import RegistrationPage from "@/pages/registration/RegistrationPage";
 import NotFoundPage from "@/pages/NotFound/NotFoundPage";
+import ProfilePage from "@/pages/Profile/ProfilePage";
 
 export const router = createBrowserRouter([
     {
@@ -12,7 +13,9 @@ export const router = createBrowserRouter([
         children: [
             { index: true, element: <HomePage /> },
             { path: STATIC_LINKS.LOGIN, element: <LoginPage /> },
-            { path: STATIC_LINKS.REGISTER, element: <RegistrationPage /> }
+            { path: STATIC_LINKS.REGISTER, element: <RegistrationPage /> },
+            { path: STATIC_LINKS.CATALOG, element: <RegistrationPage/> },
+            { path: STATIC_LINKS.PROFILE, element: <ProfilePage />},
         ]
     },
     { path: '*', element: <NotFoundPage /> }
