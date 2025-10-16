@@ -25,8 +25,7 @@ public class AppConfig {
 
     @Bean
     SecretKeySpec jwtHmacKey(@Value("${JWT_SECRET}") String hex) {
-        byte[] key = HexFormat.of().parseHex(hex);
-        return new SecretKeySpec(key, "HmacSHA256");
+        return new SecretKeySpec(hex.getBytes(), "HmacSHA256");
     }
 
     @Bean
