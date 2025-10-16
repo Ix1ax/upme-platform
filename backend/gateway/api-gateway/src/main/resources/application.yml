@@ -18,12 +18,20 @@ spring:
                 allowed-headers: "*"
                 allow-credentials: true
 
-          # --- ROUTES ---
           routes:
+          # ===== AUTH SERVICE =====
             - id: auth
-              uri: ${AUTH_URL:http://auth-service:8080}
+              uri: ${AUTH_URL:http://auth-service:8081}
               predicates:
                 - Path=/auth/**
+              filters:
+                - StripPrefix=0
+
+            # ===== PROFILE SERVICE =====
+            - id: profile
+              uri: ${PROFILE_URL:http://profile-service:8082}
+              predicates:
+                - Path=/profile/**
               filters:
                 - StripPrefix=0
 
