@@ -1,0 +1,31 @@
+<svg class="laptop" viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- lid -->
+    <rect x="100" y="40" width="480" height="300" rx="18" fill="#ffffff" stroke="#E2EAF8"></rect>
+    <rect x="120" y="62" width="440" height="256" rx="12" fill="#F7FAFF" stroke="#E6EEFF"></rect>
+    <!-- status bar -->
+    <rect x="120" y="62" width="440" height="32" rx="12" fill="#EEF4FF"></rect>
+    <circle cx="144" cy="78" r="5" fill="#D9E6FF"></circle>
+    <circle cx="162" cy="78" r="5" fill="#D9E6FF"></circle>
+    <circle cx="180" cy="78" r="5" fill="#D9E6FF"></circle>
+    <!-- code lines -->
+    <g stroke="#2F6DFF" stroke-linecap="round">
+        <path d="M160 120h120" opacity=".9"></path>
+        <path d="M160 146h260" opacity=".5"></path>
+        <path d="M160 172h180" opacity=".9"></path>
+        <path d="M160 198h240" opacity=".5"></path>
+        <path d="M160 224h140" opacity=".9"></path>
+    </g>
+    <g stroke="#00C2E0" stroke-linecap="round">
+        <path d="M340 146h90" opacity=".7"></path>
+        <path d="M360 198h60" opacity=".7"></path>
+        <path d="M310 224h170" opacity=".7"></path>
+    </g>
+    <!-- code symbols -->
+    <g fill="none" stroke="#2F6DFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M268 260l-24 18 24 18"></path>
+        <path d="M412 260l24 18-24 18"></path>
+    </g>
+    <!-- base -->
+    <rect x="60" y="340" width="560" height="40" rx="10" fill="#ECF2FF" stroke="#D6E2FF"></rect>
+    <rect x="220" y="346" width="240" height="10" rx="5" fill="#D0DBFF"></rect>
+</svg>
