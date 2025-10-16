@@ -21,9 +21,16 @@ spring:
           # --- ROUTES ---
           routes:
             - id: auth
-              uri: ${AUTH_URL:http://auth-service:8080}
+              uri: ${AUTH_URL:http://auth-service:8081}
               predicates:
                 - Path=/auth/**
+              filters:
+                - StripPrefix=0
+
+            - id: profile
+              uri: ${AUTH_URL:http://profile-service:8082}
+              predicates:
+                - Path=/profile/**
               filters:
                 - StripPrefix=0
 
