@@ -31,9 +31,17 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /* ==================== 400: Validation & bad input  ==================== */
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<Map<String, Object>> handleApiException(ApiException ex) {
+        Map<String, Object> body = Map.<String, Object>of(
+                "error", ex.getCode(),
+                "message", ex.getMessage(),
+                "status", ex.getStatus(),
+                "timestamp", OffsetDateTime.now().toString()
+        );
+        return ResponseEntity.status(ex.getStatus()).body(body);
+    }
 
-    // Bean Validation на @RequestBody DTO
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpServletRequest req) {
