@@ -28,7 +28,7 @@ spring:
                 - StripPrefix=0
 
             - id: profile
-              uri: ${AUTH_URL:http://profile-service:8082}
+              uri: ${PROFILE_URL:http://profile-service:8082}
               predicates:
                 - Path=/profile/**
               filters:
