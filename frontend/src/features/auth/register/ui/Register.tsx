@@ -19,7 +19,7 @@ type RegForm = {
 
 const Register = observer(()=> {
 
-    const  {isLoading, register} = useStore().reg;
+    const  {isLoading, register} = useStore().auth;
     const navigate = useNavigate();
 
     const [form, setForm] = useState<RegForm>({

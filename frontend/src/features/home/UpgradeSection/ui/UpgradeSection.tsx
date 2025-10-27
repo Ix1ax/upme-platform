@@ -1,6 +1,8 @@
 // import styles from './UpgradeSection.module.css'
 import {Stack, Title, Text, Button, Group, Card, Image} from "@mantine/core";
 import comp from '../images/computer.svg'
+import {Link} from "react-router-dom";
+import {STATIC_LINKS} from "@/shared/constants/staticLinks";
 
 const UpgradeSection = () => {
     return (
@@ -17,9 +19,11 @@ const UpgradeSection = () => {
                        <Button>
                            Начать бесплатно
                        </Button>
-                       <Button variant="light">
-                           Каталог курсов
-                       </Button>
+                       <Link to={STATIC_LINKS.CATALOG}>
+                           <Button variant="light">
+                               Каталог курсов
+                           </Button>
+                       </Link>
                    </Group>
                </Stack>
 
