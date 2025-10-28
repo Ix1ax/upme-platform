@@ -115,21 +115,22 @@ services:
       - minio
     entrypoint: >
       /bin/sh -c "
-      sleep 10 &&
-      mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
-      mc mb -p myminio/${S3_BUCKET_PROFILE} &&
-      mc anonymous set public myminio/${S3_BUCKET_PROFILE} &&
-      exit 0
+        echo '⏳ Waiting for MinIO...' &&
+        sleep 5 &&
+        mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+        mc mb -p myminio/${S3_BUCKET_PROFILE} || true &&
+        mc anonymous set download myminio/${S3_BUCKET_PROFILE} &&
+        exit 0
       "
     networks:
       - app-net
 
-  frontend:
-    build: ../frontend
-    depends_on: [api-gateway]
-    ports:
-      - "5173:80"
-    networks: [app-net]
+#  frontend:
+#    build: ../frontend
+#    depends_on: [api-gateway]
+#    ports:
+#      - "5173:80"
+#    networks: [app-net]
 
 
 
