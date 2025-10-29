@@ -93,7 +93,7 @@ services:
       - profile-db-data:/var/lib/postgresql/data
 
   course-service:
-    build: ../backend/services/profile-service
+    build: ../backend/services/course-service
     ports:
       - "8083:8083"
     environment:
