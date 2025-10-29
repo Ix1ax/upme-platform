@@ -1,0 +1,18 @@
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+*.iml
+
+# Maven output
+target/
+build/
+out/
+
+# Dockerfile не нужен внутри
+Dockerfile
+docker-compose*.yml
+
+# OS/System
+.DS_Store
