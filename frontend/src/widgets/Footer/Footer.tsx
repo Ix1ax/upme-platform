@@ -39,7 +39,7 @@ export default function Footer() {
         const links = group.links.map((link, index) => (
             <Text<'a'>
                 key={index}
-                className={classes.link}
+                className={classes.link ?? ''}
                 component="a"
                 href={link.link}
                 onClick={(event) => event.preventDefault()}
@@ -50,7 +50,7 @@ export default function Footer() {
 
         return (
             <div className={classes.wrapper} key={group.title}>
-                <Title order={4} className={classes.title}>{group.title}</Title>
+                <Title order={4} className={classes.title ?? ''}>{group.title}</Title>
                 {links}
             </div>
         );
@@ -58,21 +58,21 @@ export default function Footer() {
 
     return (
         <footer className={classes.footer}>
-            <Container className={classes.inner}>
+            <Container className={classes.inner ?? ''}>
                 <div className={classes.logo}>
                     <Image src={'/img/Upme.svg'} alt="UP.me" w={100} fit="contain" />
-                    <Text size="xs" c="dimmed" className={classes.description}>
+                    <Text size="xs" c="dimmed" className={classes.description ?? ''}>
                         Build fully functional accessible web applications faster than ever
                     </Text>
                 </div>
                 <div className={classes.groups}>{groups}</div>
             </Container>
-            <Container className={classes.afterFooter}>
+            <Container className={classes.afterFooter ?? ''}>
                 <Text c="dimmed" size="sm">
                     © 2020 mantine.dev. All rights reserved.
                 </Text>
 
-                <Group gap={0} className={classes.social} justify="flex-end" wrap="nowrap">
+                <Group gap={0} className={classes.social ?? ''} justify="flex-end" wrap="nowrap">
                     <ActionIcon size="lg" color="gray" variant="subtle">
                         <FaVk size={18}  />
                     </ActionIcon>

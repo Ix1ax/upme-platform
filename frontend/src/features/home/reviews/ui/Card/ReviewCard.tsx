@@ -36,7 +36,7 @@ const ReviewCard = ({name, course, comment} : CardProps) => {
                     </Stack>
                 </Group>
 
-                <Paper className={styles.comment} radius="lg" p={10}>
+                <Paper className={styles.comment ?? ''} radius="lg" p={10}>
                     <Text>
                         {comment}
                     </Text>

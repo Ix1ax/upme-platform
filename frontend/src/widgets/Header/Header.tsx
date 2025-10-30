@@ -5,6 +5,7 @@ import {observer} from "mobx-react-lite";
 import { CiSearch } from "react-icons/ci";
 import {useStore} from "@/shared/hooks/UseStore";
 import {useEffect} from "react";
+import styles from './header.module.css'
 
 const Header = observer(() => {
 
@@ -14,10 +15,11 @@ const Header = observer(() => {
         if (!isAuthenticated && localStorage.getItem("accessToken")) {
             profile();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
-        <AppShell.Header>
+        <AppShell.Header className={styles.header ?? ''}>
             <Container>
                 <Group h="100%" py="sm" px="md" justify="space-between">
                     <Group>
