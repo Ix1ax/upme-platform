@@ -14,11 +14,12 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
-import { useState } from "react";
 import styles from "./Profile.module.css";
+import {useStore} from "@/shared/hooks/UseStore";
+import {STATIC_LINKS} from "@/shared/constants/staticLinks";
+import {useNavigate} from "react-router-dom";
 
 type Profile = {
-    id: string;
     name: string;
     description: string;
     avatarUrl: string;
@@ -26,27 +27,29 @@ type Profile = {
     phone: string;
 };
 
+type NullableProfile = Profile | null;
+
 const ProfileSection = observer(() => {
-    // Локальное состояние профиля (можешь заменить на данные из MobX-стора)
-    const [profile, setProfile] = useState<Profile>({
-        id: "123456",
-        name: "Иван Иванов",
-        description:
-            "Разработчик Java/Spring. Люблю чистую архитектуру и красивый UI, иногда занимаюсь дизайном.",
-        avatarUrl: "",
-        city: "Тверь",
-        phone: "+358 40 000 00 00",
-    });
+
+    const {user: profile, logout} = useStore().auth
+
+    const nav = useNavigate();
 
     // Открытие/закрытие модалки
     const [opened, { open, close }] = useDisclosure(false);
 
     // Форма Mantine
     const form = useForm<Profile>({
-        initialValues: profile,
+            initialValues: (profile as NullableProfile) ?? {
+            name: "",
+            description: "",
+            avatarUrl: "",
+            city: "",
+            phone: "",
+        },
         validate: {
             name: (v) => (v.trim().length < 2 ? "Имя слишком короткое" : null),
-            id: (v) => (v.trim().length === 0 ? "ID обязателен" : null),
+            // id: (v) => (v.trim().length === 0 ? "ID обязателен" : null),
             avatarUrl: (v) =>
                 v && !/^https?:\/\/.+/i.test(v) ? "Введите корректный URL (http/https)" : null,
             phone: (v) =>
@@ -56,48 +59,56 @@ const ProfileSection = observer(() => {
 
     const handleEditClick = () => {
         // Перед открытием модалки синхронизируем значения формы c текущим профилем
-        form.setValues(profile);
+        // form.setValues(profile);
         open();
     };
 
-    const handleSubmit = (values: Profile) => {
-        setProfile(values);
+    const handleLogout = () => {
+        logout();
+        nav(STATIC_LINKS.HOME);
+    }
+
+    const handleSubmit = () => { // values: Profile
+        // setProfile(values);
         close();
     };
 
     return (
         <section className="section">
             <Group wrap="nowrap" align="start">
-                <Paper className={styles.profileInfoBlock} bg="#fff" p={20} radius="lg">
+                <Paper className={styles.profileInfoBlock ?? ''} bg="#fff" p={20} radius="lg">
                     <Stack gap={10}>
-                        <Avatar src={profile.avatarUrl} size="xl" />
-                        <Title order={3}>{profile.name}</Title>
-                        <Text>ID: {profile.id}</Text>
+                        <Avatar src={profile?.avatarUrl ?? ""} size="xl" />
+                        <Title order={3}>{profile?.displayName}</Title>
+                        {/*<Text>ID: {profile?.id}</Text>*/}
 
-                        <Paper className={styles.miniCard}>
-                            <Text>{profile.description || "Без описания"} </Text>
+                        <Paper className={styles.miniCard ?? ''}>
+                            <Text>{profile?.bio || "Без описания"} </Text>
                         </Paper>
 
-                        <Paper className={styles.miniCard}>
+                        <Paper className={styles.miniCard ?? ''}>
                             <SimpleGrid cols={2}>
                                 <Text>
                                     <b>Город</b>
                                 </Text>
-                                <Text>{profile.city || "—"}</Text>
+                                <Text>{profile?.city || "—"}</Text>
                             </SimpleGrid>
                         </Paper>
 
-                        <Paper className={styles.miniCard}>
+                        <Paper className={styles.miniCard ?? ''}>
                             <SimpleGrid cols={2}>
                                 <Text>
                                     <b>Телефон</b>
                                 </Text>
-                                <Text>{profile.phone || "—"}</Text>
+                                <Text>{profile?.phone || "—"}</Text>
                             </SimpleGrid>
                         </Paper>
 
                         <Button variant="filled" mt={10} onClick={handleEditClick}>
                             Редактировать
+                        </Button>
+                        <Button variant="filled" mt={10} onClick={handleLogout}>
+                            Выйти
                         </Button>
                     </Stack>
                 </Paper>
@@ -106,7 +117,7 @@ const ProfileSection = observer(() => {
                     <Paper w="100%" bg="#fff" p={20} radius="lg">
                         <Stack gap={12}>
                             <Title order={3}>О себе</Title>
-                            <Text>{profile.description}</Text>
+                            <Text>{profile?.bio}</Text>
                         </Stack>
                     </Paper>
 
@@ -135,34 +146,25 @@ const ProfileSection = observer(() => {
                     <Stack gap="md">
                         <Group grow>
                             <TextInput
-                                label="ID"
-                                placeholder="Уникальный ID"
-                                {...form.getInputProps("id")}
-                            />
-                            <TextInput
                                 label="Имя"
                                 placeholder="Ваше отображаемое имя"
                                 {...form.getInputProps("name")}
                             />
+                            <TextInput
+                                label="Телефон"
+                                placeholder="+7(999)999-99-99"
+                                {...form.getInputProps("phone")}
+                            />
                         </Group>
 
-                        <TextInput
-                            label="URL аватарки"
-                            placeholder="https://..."
-                            {...form.getInputProps("avatarUrl")}
-                        />
 
                         <Group grow>
                             <TextInput
                                 label="Город"
-                                placeholder="Напр. Helsinki"
+                                placeholder="Тверь"
                                 {...form.getInputProps("city")}
                             />
-                            <TextInput
-                                label="Телефон"
-                                placeholder="+358 ..."
-                                {...form.getInputProps("phone")}
-                            />
+
                         </Group>
 
                         <Textarea

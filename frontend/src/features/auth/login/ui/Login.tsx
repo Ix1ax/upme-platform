@@ -15,7 +15,7 @@ type LoginForm = {
 
 const Login = observer(()=> {
 
-    const  {isLoading, login} = useStore().auth;
+    const  {isLoading, isLoadingProfile, login} = useStore().auth;
     const navigate = useNavigate();
 
     const [form, setForm] = useState<LoginForm>({
@@ -48,7 +48,7 @@ const Login = observer(()=> {
                </Group>
                <Stack className={`${styles.formWrapper} ${styles.card}`} w="45%" h={500}>
                    <h2>Вход</h2>
-                    <Form handleSubmit={handleSubmit} form={form} handleChangeForm={handleChangeForm} isLoading={isLoading}/>
+                    <Form handleSubmit={handleSubmit} form={form} handleChangeForm={handleChangeForm} isLoading={isLoading} isLoadingProfile={isLoadingProfile}/>
                    <Text>
                        Нет аккаунта? <Link to={STATIC_LINKS.REGISTER}>Зарегистрироваться</Link>
                    </Text>
