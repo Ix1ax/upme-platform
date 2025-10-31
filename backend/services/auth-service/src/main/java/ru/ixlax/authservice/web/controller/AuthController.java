@@ -10,7 +10,7 @@ import ru.ixlax.authservice.service.AuthService;
 import ru.ixlax.authservice.web.dto.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 

@@ -23,14 +23,21 @@ spring:
             - id: auth
               uri: ${AUTH_URL:http://auth-service:8081}
               predicates:
-                - Path=/auth/**
+                - Path=/api/auth/**
               filters:
                 - StripPrefix=0
 
             - id: profile
               uri: ${PROFILE_URL:http://profile-service:8082}
               predicates:
-                - Path=/profile/**
+                - Path=/api/profile/**
+              filters:
+                - StripPrefix=0
+
+            - id: course
+              uri: ${COURSE_URL:http://course-service:8083}
+              predicates:
+                - Path=/api/courses/**
               filters:
                 - StripPrefix=0
 
