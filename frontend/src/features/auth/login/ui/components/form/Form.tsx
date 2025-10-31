@@ -9,11 +9,12 @@ type LoginForm = {
 interface formProps {
     form: LoginForm;
     isLoading: boolean;
+    isLoadingProfile: boolean;
     handleChangeForm: (e: ChangeEvent<HTMLInputElement>) => void;
     handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
 }
 
-const Form = ({handleSubmit, handleChangeForm, form, isLoading} : formProps) => {
+const Form = ({handleSubmit, handleChangeForm, form, isLoading, isLoadingProfile} : formProps) => {
     return (
         <form onSubmit={(e)=> handleSubmit(e)}>
             <Stack gap={2}>
@@ -36,7 +37,7 @@ const Form = ({handleSubmit, handleChangeForm, form, isLoading} : formProps) => 
                     Забыли пароль?
                 </Button>
 
-                <Button type="submit" mt="sm" w={"100%"} loading={isLoading}>Войти</Button>
+                <Button type="submit" mt="sm" w={"100%"} loading={isLoading || isLoadingProfile}>Войти</Button>
             </Stack>
         </form>
     )
