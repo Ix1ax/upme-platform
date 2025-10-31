@@ -14,7 +14,7 @@ import ru.ixlax.profileservice.web.dto.ProfileUpdateWithoutAvatarRequest;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/profile")
+@RequestMapping("/api/profile")
 @RequiredArgsConstructor
 public class ProfileController {
 
