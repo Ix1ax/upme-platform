@@ -1,6 +1,7 @@
 package ru.ixlax.profileservice.web.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -34,11 +35,10 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.updateProfile(userId,role,request));
     }
 
-    @PostMapping("/avatar")
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProfileResponse> updateAvatar(@AuthenticationPrincipal Jwt jwt, @RequestPart("avatar") MultipartFile avatar) {
         UUID userId = UUID.fromString(jwt.getSubject());
         String role = jwt.getClaim("role");
-
         return ResponseEntity.ok(profileService.updateProfileAvatar(userId,role, avatar));
     }
 
