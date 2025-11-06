@@ -4,4 +4,5 @@ export const STATIC_LINKS = {
     REGISTER: '/register',
     CATALOG: '/catalog',
     PROFILE: '/profile',
+    COURSE: 'catalog/course/:id',
 }

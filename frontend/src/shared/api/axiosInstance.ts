@@ -13,7 +13,7 @@ import axios from 'axios';
  * @type {import('axios').AxiosInstance}
  */
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: `${import.meta.env.VITE_API_URL}/api`,
 });
 
 /** @type {boolean} Флаг, выполняется ли сейчас обновление токена */

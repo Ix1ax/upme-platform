@@ -6,6 +6,8 @@ import LoginPage from "@/pages/login/LoginPage";
 import RegistrationPage from "@/pages/registration/RegistrationPage";
 import NotFoundPage from "@/pages/NotFound/NotFoundPage";
 import ProfilePage from "@/pages/Profile/ProfilePage";
+import CatalogPage from "@/pages/Catalog/CatalogPage";
+import CoursePage from "@/pages/Course/CoursePage";
 
 export const router = createBrowserRouter([
     {
@@ -14,8 +16,9 @@ export const router = createBrowserRouter([
             { index: true, element: <HomePage /> },
             { path: STATIC_LINKS.LOGIN, element: <LoginPage /> },
             { path: STATIC_LINKS.REGISTER, element: <RegistrationPage /> },
-            { path: STATIC_LINKS.CATALOG, element: <RegistrationPage/> },
+            { path: STATIC_LINKS.CATALOG, element: <CatalogPage /> },
             { path: STATIC_LINKS.PROFILE, element: <ProfilePage />},
+            { path: STATIC_LINKS.COURSE, element: <CoursePage /> }
         ]
     },
     { path: '*', element: <NotFoundPage /> }

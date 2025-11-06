@@ -1,0 +1,23 @@
+.filtersBlock {
+    width: 100%;
+    max-width: 300px;
+    min-height: 400px;
+    position: sticky;
+    top: 120px;
+}
+
+.rel {
+    position: relative;
+}
+
+.miniCard {
+    background-color: #f1f1f1 !important;
+    color: #000 !important;
+    padding: 10px;
+    border-radius: 10px !important;
+}
+
+.fullWidthSect {
+    width: 100%;
+
+}

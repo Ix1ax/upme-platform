@@ -124,10 +124,7 @@ const ProfileSection = observer(() => {
                     <Paper w="100%" bg="#fff" p={20} radius="lg">
                         <Stack gap={12}>
                             <Title order={3}>Мои курсы</Title>
-                            {/*<Text>*/}
-                            {/*    Пишу backend на Java (Spring Boot, Security, Data). Люблю аккуратные интерфейсы и*/}
-                            {/*    понятную структуру кода. Стремлюсь к продуманному UX и ясной архитектуре сервисов.*/}
-                            {/*</Text>*/}
+
                         </Stack>
                     </Paper>
                 </Stack>
