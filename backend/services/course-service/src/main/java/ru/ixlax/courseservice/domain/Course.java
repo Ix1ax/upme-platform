@@ -28,8 +28,9 @@ public class Course {
 
     private UUID authorId;
 
-    private String previewUrl;     // ссылка на фото
-    private String structureUrl;   // JSON структура в MinIO
+    private String previewUrl;     // ссылка на изображение превью
+    private String structureUrl;   // JSON «скелет» (structure.json)
+    private String lessonsUrl;     // JSON «контент» (lessons.json)
 
     private Double rating;
     private boolean published;

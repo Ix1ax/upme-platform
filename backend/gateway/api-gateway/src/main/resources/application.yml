@@ -37,7 +37,7 @@ spring:
             - id: course
               uri: ${COURSE_URL:http://course-service:8083}
               predicates:
-                - Path=/api/courses/**
+                - Path=/api/courses/**,/api/enrollments/**
               filters:
                 - StripPrefix=0
 

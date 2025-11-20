@@ -10,7 +10,7 @@ target/
 build/
 out/
 
-# Dockerfile не нужен внутри
+# Docker metadata we do not need in the build context
 Dockerfile
 docker-compose*.yml
 

@@ -1,7 +1,13 @@
 # ----- stage 1: build -----
 FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
-COPY . .
+
+COPY pom.xml ./
+COPY mvnw ./
+COPY .mvn .mvn
+RUN mvn -q dependency:go-offline
+
+COPY src ./src
 RUN mvn -q -DskipTests package
 
 # ----- stage 2: run -----

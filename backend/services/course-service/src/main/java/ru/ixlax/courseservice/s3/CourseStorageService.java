@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -17,48 +17,99 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CourseStorageService {
 
-    private final S3Client s3Client;
+    private final S3Client s3;
 
     @Value("${app.s3.bucket}")
     private String bucket;
 
-    public String uploadStructure(UUID courseID, String json) {
-        String key = courseID + "/structure.json";
-        s3Client.putObject(PutObjectRequest.builder()
+    @Value("${app.s3.publicBaseUrl}")
+    private String publicBaseUrl;
+
+    /* ============================================================
+       BASIC HELPERS
+       ============================================================ */
+
+    private String url(String key) {
+        return publicBaseUrl + "/" + bucket + "/" + key;
+    }
+
+    private String ext(String filename) {
+        int i = filename.lastIndexOf(".");
+        return (i < 0) ? "" : filename.substring(i);
+    }
+
+    /* ============================================================
+       UPLOAD SIMPLE FILES
+       ============================================================ */
+
+    public String uploadFile(UUID id, String fileName, MultipartFile mf) {
+        String key = id + "/" + fileName;
+
+        try {
+            s3.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(key)
+                            .contentType(mf.getContentType())
+                            .build(),
+                    RequestBody.fromBytes(mf.getBytes())
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка загрузки файла: " + fileName, e);
+        }
+
+        return url(key);
+    }
+
+    public String uploadString(UUID id, String fileName, String content) {
+        String key = id + "/" + fileName;
+
+        s3.putObject(
+                PutObjectRequest.builder()
                         .bucket(bucket)
                         .key(key)
                         .contentType("application/json")
                         .build(),
-                RequestBody.fromString(json));
-        return getUrl(key, courseID);
+                RequestBody.fromString(content)
+        );
+
+        return url(key);
     }
 
-    public String uploadPreview(UUID courseID, MultipartFile file) {
-        String filename = Objects.requireNonNull(file.getOriginalFilename());
-        String extension = getFileExtension(filename);
-        String key = courseID + "/" + "avatar" + extension;
-        try {
-            s3Client.putObject(PutObjectRequest.builder()
-                            .bucket(bucket)
-                            .key(key)
-                            .contentType(file.getContentType())
-                            .build(),
-                    RequestBody.fromBytes(file.getBytes()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    public String uploadPreview(UUID id, MultipartFile preview) {
+        String ext = ext(preview.getOriginalFilename());
+        return uploadFile(id, "preview" + ext, preview);
+    }
+
+    /* ============================================================
+       UPLOAD JSON FILES (structure + lessons)
+       ============================================================ */
+
+    public String uploadStructure(UUID id, MultipartFile file) {
+        return uploadFile(id, "structure.json", file);
+    }
+
+    public String uploadLessons(UUID id, MultipartFile file) {
+        return uploadFile(id, "lessons.json", file);
+    }
+
+    /* ============================================================
+       BULK ASSETS
+       ============================================================ */
+
+    public void uploadAssets(UUID id, List<MultipartFile> assets) {
+        if (assets == null) return;
+
+        for (MultipartFile f : assets) {
+            String safe = "assets/" + Objects.requireNonNullElse(f.getOriginalFilename(), UUID.randomUUID() + ".bin");
+            uploadFile(id, safe, f);
         }
-        return getUrl(key, courseID);
     }
 
-    private String getFileExtension(String filename) {
-        int dotIndex = filename.lastIndexOf('.');
-        if (dotIndex != -1 && dotIndex < filename.length() - 1) {
-            return filename.substring(dotIndex);
+    public String putAsset(UUID id, String subPath, MultipartFile file) {
+        if (subPath == null || subPath.isBlank()) {
+            subPath = "assets/" + Objects.requireNonNullElse(file.getOriginalFilename(), UUID.randomUUID() + ".bin");
         }
-        return "";
-    }
-
-    private String getUrl(String key, UUID courseID) {
-        return String.format("http://localhost:9000/%s/%s", bucket, key);
+        return uploadFile(id, subPath, file);
     }
 }
