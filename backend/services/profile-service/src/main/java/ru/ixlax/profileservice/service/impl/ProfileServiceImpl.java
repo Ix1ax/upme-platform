@@ -2,18 +2,13 @@ package ru.ixlax.profileservice.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 import ru.ixlax.profileservice.domain.Profile;
-import ru.ixlax.profileservice.exception.custom.ProfileNotFoundException;
 import ru.ixlax.profileservice.repository.ProfileRepository;
 import ru.ixlax.profileservice.s3.ImageStorageService;
 import ru.ixlax.profileservice.service.ProfileService;
 import ru.ixlax.profileservice.web.dto.ProfileResponse;
-import ru.ixlax.profileservice.web.dto.ProfileUpdateAvatarRequest;
 import ru.ixlax.profileservice.web.dto.ProfileUpdateWithoutAvatarRequest;
 
 import java.util.UUID;
@@ -47,10 +42,20 @@ public class ProfileServiceImpl implements ProfileService {
             return newProfile;
         });
 
-        profile.setDisplayName(request.displayName());
-        profile.setBio(request.bio());
-        profile.setCity(request.city());
-        profile.setPhone(request.phone());
+        if (request != null) {
+            if (request.displayName() != null) {
+                profile.setDisplayName(normalize(request.displayName()));
+            }
+            if (request.bio() != null) {
+                profile.setBio(normalize(request.bio()));
+            }
+            if (request.city() != null) {
+                profile.setCity(normalize(request.city()));
+            }
+            if (request.phone() != null) {
+                profile.setPhone(normalize(request.phone()));
+            }
+        }
         profileRepository.saveAndFlush(profile);
 
         return ProfileResponse.from(profile,role);
@@ -72,5 +77,13 @@ public class ProfileServiceImpl implements ProfileService {
 
         return ProfileResponse.from(profile,role);
 
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

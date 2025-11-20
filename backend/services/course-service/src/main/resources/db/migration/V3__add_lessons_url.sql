@@ -1,0 +1,2 @@
+ALTER TABLE courses
+    ADD COLUMN IF NOT EXISTS lessons_url TEXT;
