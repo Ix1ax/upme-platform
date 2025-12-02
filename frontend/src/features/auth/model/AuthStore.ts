@@ -1,6 +1,9 @@
 import LoginService from "@/features/auth/login/api/loginService";
 import RegisterService from "@/features/auth/register/api/registerService";
 import AuthService from "@/features/auth/api/authService";
+import ProfileService, {
+    type ProfileResponse,
+} from "@/features/Profile/api/ProfileService";
 import { makeAutoObservable } from "mobx";
 
 interface regProps {
@@ -10,6 +13,10 @@ interface regProps {
     confirmPassword: string;
 }
 
+/**
+ * Состояние пользователя в сторе.
+ * По сути это то же самое, что ProfileResponse на бэке.
+ */
 interface userState {
     id: string;
     displayName: string;
@@ -25,11 +32,15 @@ export class AuthStore {
         makeAutoObservable(this);
     }
 
-    _isAuthenticated: boolean = false;
-    _user: userState | null = null;
-    _isLoading: boolean = false;
-    _isLoadingProfile: boolean = false;
-    _profileLoaded: boolean = false; // ⚡ добавляем флаг чтобы не дёргать profile повторно
+    // ===== Приватные поля стора =====
+
+    _isAuthenticated: boolean = false; // залогинен ли пользователь
+    _user: userState | null = null;    // данные профиля
+    _isLoading: boolean = false;       // общий флаг загрузки (логин/регистрация/логаут)
+    _isLoadingProfile: boolean = false; // отдельный флаг для загрузки профиля
+    _profileLoaded: boolean = false;   // уже пробовали загрузить профиль или нет
+
+    // ===== Геттеры =====
 
     get isAuthenticated() {
         return this._isAuthenticated;
@@ -47,6 +58,38 @@ export class AuthStore {
         return this._isLoadingProfile;
     }
 
+    get profileLoaded() {
+        return this._profileLoaded;
+    }
+
+    /**
+     * Утилита: проставить пользователя в стор из ответа профиля.
+     * Используется и при GET /profile/me, и после обновления профиля/аватара.
+     */
+    setUserFromProfile = (profile: ProfileResponse) => {
+        this._user = profile;
+        this._isAuthenticated = true;
+        this._profileLoaded = true;
+    };
+
+    /**
+     * Проверить, авторизован ли пользователь.
+     * - Если нет accessToken в localStorage → точно не авторизован.
+     * - Если токен есть и профиль ещё не грузили → грузим профиль.
+     */
+    ensureAuth = async () => {
+        const hasToken = !!localStorage.getItem("accessToken");
+        if (!hasToken) {
+            this._isAuthenticated = false;
+            return false;
+        }
+
+        if (!this._profileLoaded && !this._isLoadingProfile) {
+            await this.profile();
+        }
+        return this._isAuthenticated;
+    };
+
     /** 🔐 Логин */
     login = async (acc: { email: string; password: string }) => {
         this._isLoading = true;
@@ -59,13 +102,15 @@ export class AuthStore {
             if (accessToken) {
                 localStorage.setItem("accessToken", accessToken);
                 localStorage.setItem("refreshToken", refreshToken);
-                await this.profile(); // подгружаем профиль сразу после логина
-                this._isAuthenticated = true;
+
+                // После логина сразу тянем профиль через ProfileService
+                await this.profile();
                 return !!this.user;
             }
             return false;
         } catch (error) {
             console.error(error);
+            this._isAuthenticated = false;
             return false;
         } finally {
             this._isLoading = false;
@@ -84,34 +129,42 @@ export class AuthStore {
             if (accessToken) {
                 localStorage.setItem("accessToken", accessToken);
                 localStorage.setItem("refreshToken", refreshToken);
-                this._isAuthenticated = true;
-                await this.profile(); // после регистрации тоже сразу подгружаем профиль
+
+                // После регистрации тоже сразу подгружаем профиль.
+                // На бэке по логике создаётся пустой профиль, который
+                // пользователь потом дозаполняет в личном кабинете.
+                await this.profile();
                 return true;
             }
             return false;
         } catch (error) {
             console.error(error);
+            this._isAuthenticated = false;
             return false;
         } finally {
             this._isLoading = false;
         }
     };
 
-    /** 👤 Получить профиль (только один раз) */
+    /** 👤 Получить профиль пользователя (один раз за сессию) */
     profile = async () => {
-        if (this._profileLoaded) return true; // ⚡ если уже загружали, не повторяем
+        // Если уже грузили профиль ранее — повторно не идём на бэк
+        if (this._profileLoaded) return true;
 
         this._isLoadingProfile = true;
         try {
-            const res = await AuthService.getProfile();
-            this._user = res?.data;
-            this._isAuthenticated = true;
-            this._profileLoaded = true; // флаг что уже загружали
+            // Используем UPME Profile Service:
+            // GET /api/profile/me
+            const res = await ProfileService.getProfile();
+
+            this.setUserFromProfile(res.data);
             return true;
         } catch (e) {
+            // Если запрос упал (например, 401), считаем, что пользователь не авторизован
             this._isAuthenticated = false;
             this._user = null;
             console.error("Ошибка получения данных пользователя", e);
+            this._profileLoaded = true; // чтобы не крутить бесконечную загрузку
             return false;
         } finally {
             this._isLoadingProfile = false;
@@ -122,13 +175,14 @@ export class AuthStore {
     logout = async () => {
         this._isLoading = true;
         try {
+            // Здесь остаётся твой AuthService.logout(), если он что-то делает на бэке
             await AuthService.logout();
         } catch (error) {
             console.error(error);
         } finally {
             this._user = null;
             this._isAuthenticated = false;
-            this._profileLoaded = false; // сбрасываем, чтобы при следующем входе можно было снова загрузить
+            this._profileLoaded = false;
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
             this._isLoading = false;

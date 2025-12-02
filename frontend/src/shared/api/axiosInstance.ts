@@ -65,8 +65,8 @@ axiosInstance.interceptors.response.use(
         if (![401, 403].includes(error.response?.status) || originalRequest._retry)
             return Promise.reject(error);
 
-        const accessToken = localStorage.getItem('access_token');
-        const refreshToken = localStorage.getItem('refresh_token');
+        const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
 
         // Если токенов нет — выходим
         if (!accessToken || !refreshToken)
@@ -90,13 +90,13 @@ axiosInstance.interceptors.response.use(
 
         try {
             // Обновляем токены
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, { refreshToken });
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/refresh`, { refreshToken });
 
             const newAccess = response.data.accessToken;
             const newRefresh = response.data.refreshToken;
 
-            localStorage.setItem('access_token', newAccess);
-            localStorage.setItem('refresh_token', newRefresh);
+            localStorage.setItem('accessToken', newAccess);
+            localStorage.setItem('refreshToken', newRefresh);
 
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
             processQueue(null, newAccess);
@@ -105,8 +105,8 @@ axiosInstance.interceptors.response.use(
             return axiosInstance(originalRequest);
         } catch (refreshError) {
             processQueue(refreshError, null);
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
             return Promise.reject(refreshError);
         } finally {
             isRefreshing = false;
