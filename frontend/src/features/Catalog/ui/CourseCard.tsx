@@ -1,5 +1,6 @@
 import {Badge, Button, Card, Group, Image, Text} from "@mantine/core";
 import { useNavigate} from "react-router-dom";
+import {STATIC_LINKS} from "@/shared/constants/staticLinks";
 
 interface courseCardProps {
     course: {
@@ -33,9 +34,9 @@ const CourseCard = ({course} : courseCardProps) => {
             <Text size="sm" c="dimmed">
                 {course.description}
             </Text>
-                <Button onClick={() => {nav(`course/${course.id}`)}} mt={15}>
-                    Просмотреть
-                </Button>
+            <Button onClick={() => nav(STATIC_LINKS.COURSE_BY_ID(course.id))} mt={15}>
+                Просмотреть
+            </Button>
         </Card>
     )
 }
