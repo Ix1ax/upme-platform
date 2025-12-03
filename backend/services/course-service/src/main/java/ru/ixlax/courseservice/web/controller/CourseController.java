@@ -12,9 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.ixlax.courseservice.service.CourseService;
+import ru.ixlax.courseservice.web.dto.CatalogFilter;
 import ru.ixlax.courseservice.web.dto.CourseRequest;
 import ru.ixlax.courseservice.web.dto.CourseResponse;
 
@@ -34,11 +36,19 @@ public class CourseController {
     private final CourseService courses;
     private final ObjectMapper mapper;
 
-    @Operation(summary = "Список опубликованных курсов", description = "Возвращает карточки всех опубликованных курсов для каталога.")
+    @Operation(
+            summary = "Список опубликованных курсов",
+            description = """
+                    Возвращает карточки всех опубликованных курсов для каталога. \
+                    Поддерживает фильтры по названию/описанию, автору, минимальному рейтингу \
+                    и сортировку (rating_desc | rating_asc | newest | oldest)."""
+    )
     @Tag(name = PUBLIC)
     @GetMapping
-    public ResponseEntity<List<CourseResponse>> getAll() {
-        return ResponseEntity.ok(courses.getAll());
+    public ResponseEntity<List<CourseResponse>> getAll(
+            @ParameterObject CatalogFilter filter
+    ) {
+        return ResponseEntity.ok(courses.getAll(filter));
     }
 
     @Operation(summary = "Получить курс по ID", description = "Доступно всем. Возвращает описание и ссылки на структуру/уроки.")

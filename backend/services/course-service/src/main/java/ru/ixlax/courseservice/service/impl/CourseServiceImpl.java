@@ -1,6 +1,8 @@
 package ru.ixlax.courseservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -8,13 +10,17 @@ import ru.ixlax.courseservice.domain.Course;
 import ru.ixlax.courseservice.exception.custom.CourseAccessDeniedException;
 import ru.ixlax.courseservice.exception.custom.CourseNotFoundException;
 import ru.ixlax.courseservice.repository.CourseRepository;
+import ru.ixlax.courseservice.repository.specification.CourseSpecifications;
 import ru.ixlax.courseservice.s3.CourseStorageService;
 import ru.ixlax.courseservice.service.CourseService;
+import ru.ixlax.courseservice.web.dto.CatalogFilter;
 import ru.ixlax.courseservice.web.dto.CourseRequest;
 import ru.ixlax.courseservice.web.dto.CourseResponse;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Service
 @RequiredArgsConstructor
@@ -64,8 +70,26 @@ public class CourseServiceImpl implements CourseService {
     /* ---------------- READ ---------------- */
 
     @Override
-    public List<CourseResponse> getAll() {
-        return repo.getAllByPublishedTrue().stream().map(CourseResponse::from).toList();
+    public List<CourseResponse> getAll(CatalogFilter filter) {
+        CatalogFilter normalized = filter == null
+                ? new CatalogFilter(null, null, null, null)
+                : filter;
+
+        Specification<Course> spec = Specification.where(CourseSpecifications.published());
+
+        if (hasText(normalized.query())) {
+            spec = spec.and(CourseSpecifications.titleOrDescriptionContains(normalized.query()));
+        }
+        if (normalized.authorId() != null) {
+            spec = spec.and(CourseSpecifications.authorEquals(normalized.authorId()));
+        }
+        if (normalized.minRating() != null) {
+            spec = spec.and(CourseSpecifications.ratingGte(normalized.minRating()));
+        }
+
+        Sort sort = resolveSort(normalized.sort());
+
+        return repo.findAll(spec, sort).stream().map(CourseResponse::from).toList();
     }
 
     @Override
@@ -183,6 +207,16 @@ public class CourseServiceImpl implements CourseService {
     }
 
     /* ---------------- HELPERS ---------------- */
+
+    private Sort resolveSort(String sortKey) {
+        String key = sortKey == null ? "rating_desc" : sortKey.toLowerCase();
+        return switch (key) {
+            case "rating_asc" -> Sort.by(Sort.Direction.ASC, "rating");
+            case "newest" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "oldest" -> Sort.by(Sort.Direction.ASC, "createdAt");
+            default -> Sort.by(Sort.Direction.DESC, "rating");
+        };
+    }
 
     private void ensureOwnerOrAdmin(Course c, UUID authorId, boolean isAdmin) {
         if (isAdmin) return;
