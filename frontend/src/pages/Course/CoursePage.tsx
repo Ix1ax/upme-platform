@@ -1,11 +1,17 @@
-import MainLayout from "@/layouts/main/MainLayout";
-import CourseWidget from "@/widgets/Course/CourseWidget";
+// pages/Course/CoursePage.tsx
+//
+// Обёртка над CourseLearningSection с общим MainLayout
 
-const CoursePage =() => {
+import MainLayout from "@/layouts/main/MainLayout";
+import { Container } from "@mantine/core";
+import CourseLearningSection from "@/features/course/ui/CourseLearningSection";
+
+export default function CoursePage() {
     return (
         <MainLayout>
-            <CourseWidget />
+            <Container py="lg">
+                <CourseLearningSection />
+            </Container>
         </MainLayout>
-    )
+    );
 }
-export default CoursePage

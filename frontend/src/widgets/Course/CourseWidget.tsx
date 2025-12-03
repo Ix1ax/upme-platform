@@ -1,14 +1,15 @@
-import {observer} from "mobx-react-lite";
-import {Container} from "@mantine/core";
-import CourseSection from "@/features/course/ui/CourseSection";
+// Виджет страница курса: просто обёртка над CoursePlayer
+// с контейнером и отступами.
 
+import { Container } from "@mantine/core";
+import CoursePlayer from "@/features/course/ui/CoursePlayer";
 
-const CourseWidget = observer(() => {
+const CourseWidget = () => {
     return (
-        <Container>
-            <CourseSection/>
+        <Container py="xl">
+            <CoursePlayer />
         </Container>
-    )
-})
+    );
+};
 
-export default CourseWidget
+export default CourseWidget;
