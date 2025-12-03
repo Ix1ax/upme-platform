@@ -12,9 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.ixlax.courseservice.service.CourseService;
+import ru.ixlax.courseservice.web.dto.CatalogFilter;
 import ru.ixlax.courseservice.web.dto.CourseRequest;
 import ru.ixlax.courseservice.web.dto.CourseResponse;
 

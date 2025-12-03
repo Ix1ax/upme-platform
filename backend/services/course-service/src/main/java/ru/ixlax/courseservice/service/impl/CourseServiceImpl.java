@@ -8,13 +8,17 @@ import ru.ixlax.courseservice.domain.Course;
 import ru.ixlax.courseservice.exception.custom.CourseAccessDeniedException;
 import ru.ixlax.courseservice.exception.custom.CourseNotFoundException;
 import ru.ixlax.courseservice.repository.CourseRepository;
+import ru.ixlax.courseservice.repository.specification.CourseSpecifications;
 import ru.ixlax.courseservice.s3.CourseStorageService;
 import ru.ixlax.courseservice.service.CourseService;
+import ru.ixlax.courseservice.web.dto.CatalogFilter;
 import ru.ixlax.courseservice.web.dto.CourseRequest;
 import ru.ixlax.courseservice.web.dto.CourseResponse;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Service
 @RequiredArgsConstructor
