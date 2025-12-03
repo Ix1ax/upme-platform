@@ -15,7 +15,7 @@ const CatalogSection = observer(() => {
 
     return (
         <section className='section'>
-            <Group wrap="nowrap" align="start" className={styles.rel}>
+            <Group wrap="nowrap" align="start" className={styles.rel ?? ''}>
                 <Paper className={styles.filtersBlock ?? ''} bg="#fff" p={20} radius="lg">
                     <Stack gap={10}>
                         <Title>Фильтры</Title>

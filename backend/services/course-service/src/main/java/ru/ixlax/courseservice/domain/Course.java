@@ -28,13 +28,8 @@ public class Course {
 
     private UUID authorId;
 
-    @Column(name = "preview_url")
     private String previewUrl;     // ссылка на изображение превью
-
-    @Column(name = "structure_url")
     private String structureUrl;   // JSON «скелет» (structure.json)
-
-    @Column(name = "lessons_url")
     private String lessonsUrl;     // JSON «контент» (lessons.json)
 
     private Double rating;
