@@ -138,6 +138,8 @@ public class CourseServiceImpl implements CourseService {
         return CourseResponse.from(repo.save(c));
     }
 
+    /* ---------------- PUT JSON FILES ---------------- */
+
     @Override
     @Transactional
     public CourseResponse putLessonsJson(UUID id, UUID authorId, boolean isAdmin, String json) {
