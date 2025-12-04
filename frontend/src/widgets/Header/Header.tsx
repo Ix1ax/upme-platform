@@ -94,14 +94,18 @@ const Header = observer(() => {
                                                 ? "red"
                                                 : role === "TEACHER"
                                                     ? "blue"
-                                                    : "green"
+                                                    : role === "ADMIN"
+                                                        ? "red"
+                                                        : "green"
                                         }
                                     >
                                         {role === "ADMIN"
                                             ? "Администратор"
                                             : role === "TEACHER"
                                                 ? "Преподаватель"
-                                                : "Студент"}
+                                                : role === "ADMIN"
+                                                    ? "Админ"
+                                                    : "Студент"}
                                     </Badge>
                                 )}
                             </Group>
