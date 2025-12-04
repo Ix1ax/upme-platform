@@ -18,8 +18,11 @@ import ru.ixlax.authservice.web.dto.LoginRequest;
 import ru.ixlax.authservice.web.dto.RefreshRequest;
 import ru.ixlax.authservice.web.dto.RegisterRequest;
 import ru.ixlax.authservice.web.dto.TokenResponse;
+import ru.ixlax.authservice.web.dto.UserShortResponse;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -110,6 +113,20 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout(String refreshToken) {
         refreshTokens.findByToken(refreshToken).ifPresent(refreshTokens::delete);
+    }
+
+    @Override
+    public List<UserShortResponse> getAuthors(List<UUID> ids) {
+        var roles = List.of(Role.TEACHER, Role.ADMIN);
+
+        var filteredIds = ids == null ? Collections.<UUID>emptyList() : ids;
+        var result = filteredIds.isEmpty()
+                ? users.findAllByRoleIn(roles)
+                : users.findAllByIdInAndRoleIn(filteredIds, roles);
+
+        return result.stream()
+                .map(UserShortResponse::from)
+                .toList();
     }
 
 }
