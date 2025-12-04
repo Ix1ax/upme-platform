@@ -19,7 +19,7 @@ public interface CourseService {
             List<MultipartFile> assets
     ) throws Exception;
 
-    List<CourseResponse> getAll();
+    List<CourseResponse> getAll(CatalogFilter filter);
     List<CourseResponse> getMy(UUID authorId);
     CourseResponse getById(UUID id);
 

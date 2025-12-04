@@ -1,6 +1,8 @@
 package ru.ixlax.courseservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,8 +70,26 @@ public class CourseServiceImpl implements CourseService {
     /* ---------------- READ ---------------- */
 
     @Override
-    public List<CourseResponse> getAll() {
-        return repo.getAllByPublishedTrue().stream().map(CourseResponse::from).toList();
+    public List<CourseResponse> getAll(CatalogFilter filter) {
+        CatalogFilter normalized = filter == null
+                ? new CatalogFilter(null, null, null, null)
+                : filter;
+
+        Specification<Course> spec = Specification.where(CourseSpecifications.published());
+
+        if (hasText(normalized.query())) {
+            spec = spec.and(CourseSpecifications.titleOrDescriptionContains(normalized.query()));
+        }
+        if (normalized.authorId() != null) {
+            spec = spec.and(CourseSpecifications.authorEquals(normalized.authorId()));
+        }
+        if (normalized.minRating() != null) {
+            spec = spec.and(CourseSpecifications.ratingGte(normalized.minRating()));
+        }
+
+        Sort sort = resolveSort(normalized.sort());
+
+        return repo.findAll(spec, sort).stream().map(CourseResponse::from).toList();
     }
 
     @Override
@@ -189,6 +209,16 @@ public class CourseServiceImpl implements CourseService {
     }
 
     /* ---------------- HELPERS ---------------- */
+
+    private Sort resolveSort(String sortKey) {
+        String key = sortKey == null ? "rating_desc" : sortKey.toLowerCase();
+        return switch (key) {
+            case "rating_asc" -> Sort.by(Sort.Direction.ASC, "rating");
+            case "newest" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "oldest" -> Sort.by(Sort.Direction.ASC, "createdAt");
+            default -> Sort.by(Sort.Direction.DESC, "rating");
+        };
+    }
 
     private void ensureOwnerOrAdmin(Course c, UUID authorId, boolean isAdmin) {
         if (isAdmin) return;

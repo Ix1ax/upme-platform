@@ -27,6 +27,7 @@ import java.util.UUID;
 import static ru.ixlax.courseservice.web.SwaggerRoleTags.PUBLIC;
 import static ru.ixlax.courseservice.web.SwaggerRoleTags.TEACHER_ADMIN;
 
+
 @Tag(name = "Courses", description = "Каталог курсов и операции для авторов/админов")
 @RestController
 @RequestMapping("/api/courses")
@@ -36,11 +37,19 @@ public class CourseController {
     private final CourseService courses;
     private final ObjectMapper mapper;
 
-    @Operation(summary = "Список опубликованных курсов", description = "Возвращает карточки всех опубликованных курсов для каталога.")
+    @Operation(
+            summary = "Список опубликованных курсов",
+            description = """
+                    Возвращает карточки всех опубликованных курсов для каталога. \
+                    Поддерживает фильтры по названию/описанию, автору, минимальному рейтингу \
+                    и сортировку (rating_desc | rating_asc | newest | oldest)."""
+    )
     @Tag(name = PUBLIC)
     @GetMapping
-    public ResponseEntity<List<CourseResponse>> getAll() {
-        return ResponseEntity.ok(courses.getAll());
+    public ResponseEntity<List<CourseResponse>> getAll(
+            @ParameterObject CatalogFilter filter
+    ) {
+        return ResponseEntity.ok(courses.getAll(filter));
     }
 
     @Operation(summary = "Получить курс по ID", description = "Доступно всем. Возвращает описание и ссылки на структуру/уроки.")

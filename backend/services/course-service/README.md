@@ -23,6 +23,11 @@
 
 ### Получить все курсы
 - **GET** `/api/courses`
+- **Query params (опционально)**:
+  - `query` — поиск по названию/описанию.
+  - `authorId` — UUID автора.
+  - `minRating` — минимальный рейтинг (>=).
+  - `sort` — `rating_desc` (default) | `rating_asc` | `newest` | `oldest`.
 - **Response 200**
   ```json
   [
