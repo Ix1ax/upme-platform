@@ -1,7 +1,31 @@
-import {useNavigate} from "react-router-dom";
-import {Badge, Button, Card, CardSection, Group, Image, Rating, Stack, Text, Title} from "@mantine/core";
-import {STATIC_LINKS} from "@/shared/constants/staticLinks";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+    Badge,
+    Button,
+    Card,
+    CardSection,
+    Group,
+    Image,
+    Rating,
+    Stack,
+    Text,
+    Title,
+} from "@mantine/core";
+import { STATIC_LINKS } from "@/shared/constants/staticLinks";
 import MyCoursesService from "../api/MyCoursesService";
+
+const FALLBACK_IMG = "/img/plug.avif";
+
+type Props = {
+    id: string;
+    title: string;
+    description: string;
+    previewUrl: string | null;
+    published: boolean;
+    rating: number;
+    structureUrl?: string | null;
+};
 
 const CourseCard = ({
                         id,
@@ -11,18 +35,35 @@ const CourseCard = ({
                         published,
                         rating,
                         structureUrl,
-                    }: {
-    id: string;
-    title: string;
-    description: string;
-    previewUrl: string | null;
-    published: boolean;
-    rating: number;
-    structureUrl?: string | null;
-}) => {
+                    }: Props) => {
     const nav = useNavigate();
 
-    const FALLBACK_IMG = "/img/plug.avif";
+    // локальный реактивный статус публикации
+    const [isPublished, setIsPublished] = useState(published);
+    const [publishing, setPublishing] = useState(false);
+
+    // если родитель обновит published (например, после рефреша списка),
+    // синхронизируем локальный стейт
+    useEffect(() => {
+        setIsPublished(published);
+    }, [published]);
+
+    const handleTogglePublish = async () => {
+        if (publishing) return;
+
+        try {
+            setPublishing(true);
+            const { data } = await MyCoursesService.togglePublish(id, !isPublished);
+
+            // backend возвращает обновлённый CourseDTO
+            setIsPublished(data.published ?? !isPublished);
+        } catch (e) {
+            console.error("Ошибка публикации:", e);
+            // можно добавить уведомление
+        } finally {
+            setPublishing(false);
+        }
+    };
 
     return (
         <Card shadow="sm" radius="lg" withBorder>
@@ -39,27 +80,25 @@ const CourseCard = ({
 
             <Stack gap="xs" mt="md">
                 <Group justify="space-between" align="start">
-                    <Title order={4} lineClamp={1}>{title}</Title>
+                    <Title order={4} lineClamp={1}>
+                        {title}
+                    </Title>
+
                     <Badge
                         variant="light"
-                        color={published ? "green" : "gray"}
+                        color={isPublished ? "green" : "gray"}
                     >
-                        {published ? "Опубликован" : "Черновик"}
+                        {isPublished ? "Опубликован" : "Черновик"}
                     </Badge>
+
                     <Button
                         variant="light"
                         size="xs"
-                        onClick={async () => {
-                            try {
-                                await MyCoursesService.togglePublish(id, !published);
-                            } catch (e) {
-                                console.error("Ошибка публикации:", e);
-                            }
-                        }}
+                        loading={publishing}
+                        onClick={handleTogglePublish}
                     >
-                        {published ? "Скрыть" : "Опубликовать"}
+                        {isPublished ? "Скрыть" : "Опубликовать"}
                     </Button>
-
                 </Group>
 
                 <Text size="sm" c="dimmed" lineClamp={2}>
@@ -68,14 +107,20 @@ const CourseCard = ({
 
                 <Group gap="xs" mt="xs">
                     <Rating value={rating || 0} readOnly />
-                    <Text size="sm" c="dimmed">({rating || 0})</Text>
+                    <Text size="sm" c="dimmed">
+                        ({rating || 0})
+                    </Text>
                 </Group>
             </Stack>
 
             <Group mt="md" justify="space-between">
-                <Button variant="filled" onClick={() => nav(STATIC_LINKS.MY_COURSES_EDIT(id))}>
+                <Button
+                    variant="filled"
+                    onClick={() => nav(STATIC_LINKS.MY_COURSES_EDIT(id))}
+                >
                     Редактировать
                 </Button>
+
                 {structureUrl && (
                     <Button
                         component="a"

@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Container, Stack, Text, Title } from "@mantine/core";
+import {
+    Button,
+    Container,
+    FileButton,
+    Group,
+    Image,
+    Stack,
+    Text,
+    Title,
+} from "@mantine/core";
 import { useNavigate, useParams } from "react-router-dom";
 
 import CourseForm, {
@@ -21,6 +30,8 @@ export default function EditCoursePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [initial, setInitial] = useState<CourseFormValues | null>(null);
+    const [course, setCourse] = useState<CourseDTO | null>(null);
+
 
     useEffect(() => {
         (async () => {
@@ -31,11 +42,12 @@ export default function EditCoursePage() {
 
             try {
                 const { data } = await MyCoursesService.getCourseById(id);
-                const course: CourseDTO = data;
+                const loaded: CourseDTO = data;
 
+                setCourse(loaded);
                 setInitial({
-                    title: course.title,
-                    description: course.description,
+                    title: loaded.title,
+                    description: loaded.description,
                 });
             } catch (e) {
                 console.error("Ошибка загрузки курса:", e);
@@ -44,6 +56,7 @@ export default function EditCoursePage() {
             }
         })();
     }, [id]);
+
 
     const handleSubmit = async (values: CourseFormValues) => {
         if (!id) return;
@@ -55,7 +68,11 @@ export default function EditCoursePage() {
 
         try {
             setSaving(true);
-            await MyCoursesService.updateCourse(id, payload);
+            const { data: updated } = await MyCoursesService.updateCourse(
+                id,
+                payload,
+            );
+            setCourse(updated);
             // при желании можно показать уведомление/тост
         } catch (e) {
             console.error("Ошибка обновления курса:", e);
@@ -63,6 +80,20 @@ export default function EditCoursePage() {
             setSaving(false);
         }
     };
+
+    const handlePreviewUpload = async (file: File | null) => {
+        if (!file || !id) return;
+
+        try {
+            const updated = await MyCoursesService.setCoursePreview(id, file);
+            setCourse(updated); // чтобы картинка сразу обновилась в UI
+        } catch (e) {
+            console.error("Ошибка загрузки превью курса:", e);
+        }
+    };
+
+
+
 
     if (!id) {
         return (
@@ -73,6 +104,8 @@ export default function EditCoursePage() {
             </MainLayout>
         );
     }
+
+    const FALLBACK_IMG = "/img/plug.avif";
 
     return (
         <MainLayout>
@@ -88,6 +121,30 @@ export default function EditCoursePage() {
                         submitLabel="Сохранить изменения"
                         onSubmit={handleSubmit}
                     />
+
+                    {/* Обложка курса */}
+                    {course && (
+                        <Stack gap="xs">
+                            <Text fw={500}>Обложка курса</Text>
+                            <Group align="flex-start" gap="md">
+                                <Image
+                                    src={course.previewUrl || "/img/plug.avif"}
+                                    fallbackSrc="/img/plug.avif"
+                                    alt={course.title}
+                                    w={220}
+                                    radius="md"
+                                />
+                                <FileButton onChange={handlePreviewUpload} accept="image/*">
+                                    {(props) => (
+                                        <Button {...props} variant="light">
+                                            Загрузить изображение
+                                        </Button>
+                                    )}
+                                </FileButton>
+                            </Group>
+                        </Stack>
+                    )}
+
 
                     {/* CRUD уроков курса */}
                     <CourseLessonsEditor courseId={id} />
@@ -108,4 +165,5 @@ export default function EditCoursePage() {
             </Container>
         </MainLayout>
     );
+
 }

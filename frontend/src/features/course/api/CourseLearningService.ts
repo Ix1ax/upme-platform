@@ -128,6 +128,21 @@ export interface EnrollmentResponse {
     completedAt: string | null;
 }
 
+export interface CourseReviewDTO {
+    id: string;
+    courseId: string;
+    userId: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CourseReviewPayload {
+    rating: number;
+    comment: string;
+}
+
 class CourseLearningService {
     /**
      * Публичное получение курса по id
@@ -163,6 +178,17 @@ class CourseLearningService {
      */
     getMyEnrollments() {
         return axiosInstance.get<EnrollmentResponse[]>(`/enrollments/my`);
+    }
+
+    getCourseReviews(courseId: string) {
+        return axiosInstance.get<CourseReviewDTO[]>(`/courses/${courseId}/reviews`);
+    }
+
+    upsertCourseReview(courseId: string, payload: CourseReviewPayload) {
+        return axiosInstance.post<CourseReviewDTO>(
+            `/courses/${courseId}/reviews`,
+            payload,
+        );
     }
 
     /**
