@@ -113,6 +113,8 @@ public class CourseServiceImpl implements CourseService {
                 .toList();
     }
 
+    /* ---------------- READ ---------------- */
+
     @Override
     public List<CourseResponse> getMy(UUID authorId) {
         return repo.getAllByAuthorId(authorId).stream().map(CourseResponse::from).toList();
@@ -178,6 +180,8 @@ public class CourseServiceImpl implements CourseService {
         c.setStructureUrl(storage.uploadString(id, "structure.json", json));
         return CourseResponse.from(repo.save(c));
     }
+
+    /* ---------------- ASSETS ---------------- */
 
     @Override
     @Transactional
