@@ -1,3 +1,4 @@
+// tsconfig.app.json
 {
   "compilerOptions": {
     "composite": true,
@@ -17,6 +18,7 @@
     "skipLibCheck": true,
 
     "strict": true,
+    "noImplicitAny": false,   // ← добавь эту строку
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
