@@ -27,6 +27,7 @@ import java.util.UUID;
 import static ru.ixlax.courseservice.web.SwaggerRoleTags.PUBLIC;
 import static ru.ixlax.courseservice.web.SwaggerRoleTags.TEACHER_ADMIN;
 
+
 @Tag(name = "Courses", description = "Каталог курсов и операции для авторов/админов")
 @RestController
 @RequestMapping("/api/courses")
