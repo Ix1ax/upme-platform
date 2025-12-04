@@ -10,14 +10,18 @@ import ru.ixlax.courseservice.domain.Course;
 import ru.ixlax.courseservice.exception.custom.CourseAccessDeniedException;
 import ru.ixlax.courseservice.exception.custom.CourseNotFoundException;
 import ru.ixlax.courseservice.repository.CourseRepository;
+import ru.ixlax.courseservice.repository.projection.AuthorAggregation;
 import ru.ixlax.courseservice.repository.specification.CourseSpecifications;
 import ru.ixlax.courseservice.s3.CourseStorageService;
+import ru.ixlax.courseservice.service.AuthorDirectoryClient;
 import ru.ixlax.courseservice.service.CourseService;
+import ru.ixlax.courseservice.web.dto.CourseAuthorResponse;
 import ru.ixlax.courseservice.web.dto.CatalogFilter;
 import ru.ixlax.courseservice.web.dto.CourseRequest;
 import ru.ixlax.courseservice.web.dto.CourseResponse;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -28,6 +32,7 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository repo;
     private final CourseStorageService storage;
+    private final AuthorDirectoryClient authorDirectory;
 
     /* ---------------- CREATE ---------------- */
 
@@ -90,6 +95,22 @@ public class CourseServiceImpl implements CourseService {
         Sort sort = resolveSort(normalized.sort());
 
         return repo.findAll(spec, sort).stream().map(CourseResponse::from).toList();
+    }
+
+    @Override
+    public List<CourseAuthorResponse> getAuthors() {
+        List<AuthorAggregation> authors = repo.findPublishedAuthors();
+        Map<UUID, String> names = authorDirectory.fetchAuthorNames(
+                authors.stream().map(AuthorAggregation::getAuthorId).toList()
+        );
+
+        return authors.stream()
+                .map(author -> new CourseAuthorResponse(
+                        author.getAuthorId(),
+                        names.get(author.getAuthorId()),
+                        author.getCoursesCount()
+                ))
+                .toList();
     }
 
     @Override

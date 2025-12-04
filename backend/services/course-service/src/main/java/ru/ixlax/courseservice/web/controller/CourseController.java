@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.ixlax.courseservice.service.CourseService;
 import ru.ixlax.courseservice.web.dto.CatalogFilter;
+import ru.ixlax.courseservice.web.dto.CourseAuthorResponse;
 import ru.ixlax.courseservice.web.dto.CourseRequest;
 import ru.ixlax.courseservice.web.dto.CourseResponse;
 
@@ -50,6 +51,16 @@ public class CourseController {
             @ParameterObject CatalogFilter filter
     ) {
         return ResponseEntity.ok(courses.getAll(filter));
+    }
+
+    @Operation(
+            summary = "Авторы опубликованных курсов",
+            description = "Возвращает авторов, у которых есть опубликованные курсы (для фильтров каталога)."
+    )
+    @Tag(name = PUBLIC)
+    @GetMapping("/authors")
+    public ResponseEntity<List<CourseAuthorResponse>> getAuthors() {
+        return ResponseEntity.ok(courses.getAuthors());
     }
 
     @Operation(summary = "Получить курс по ID", description = "Доступно всем. Возвращает описание и ссылки на структуру/уроки.")

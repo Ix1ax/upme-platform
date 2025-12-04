@@ -13,6 +13,9 @@ import ru.ixlax.authservice.service.AuthService;
 import ru.ixlax.authservice.web.SwaggerRoleTags;
 import ru.ixlax.authservice.web.dto.*;
 
+import java.util.List;
+import java.util.UUID;
+
 import static ru.ixlax.authservice.web.SwaggerRoleTags.AUTHENTICATED;
 import static ru.ixlax.authservice.web.SwaggerRoleTags.PUBLIC;
 
@@ -79,5 +82,17 @@ public class AuthController {
         if (principal == null) return ResponseEntity.status(401).build();
         var u = principal.getUser();
         return ResponseEntity.ok(new UserMeResponse(u.getId(), u.getName(), u.getEmail(), u.getRole().name()));
+    }
+
+    @Operation(
+            summary = "Список авторов (TEACHER/ADMIN)",
+            description = "Возвращает краткие данные об авторах. Можно передать ids=... для выборки конкретных авторов."
+    )
+    @Tag(name = PUBLIC)
+    @GetMapping("/authors")
+    public ResponseEntity<List<UserShortResponse>> authors(
+            @RequestParam(name = "ids", required = false) List<UUID> ids
+    ) {
+        return ResponseEntity.ok(authService.getAuthors(ids));
     }
 }
