@@ -2,13 +2,12 @@
 
 import {
     Button,
+    FileInput,
     Group,
     Modal,
-    NumberInput,
     Stack,
     Text,
     TextInput,
-    FileInput,
 } from "@mantine/core";
 import { useState } from "react";
 import MyCoursesService, {
@@ -20,7 +19,6 @@ type Props = {
     moduleId: string;
     opened: boolean;
     onClose: () => void;
-    // чтобы после создания обновить список уроков
     onCreated?: () => void;
 };
 
@@ -32,8 +30,6 @@ export default function CourseWebinarEditor({
                                                 onCreated,
                                             }: Props) {
     const [title, setTitle] = useState("");
-    const [orderIndex, setOrderIndex] = useState<number | null>(null);
-
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -57,17 +53,25 @@ export default function CourseWebinarEditor({
         try {
             // 1. заливаем видео как ассет курса
             setUploading(true);
+
+            const ext = file.name.split(".").pop();
+            const unique = `${Date.now()}-${Math.random()
+                .toString(36)
+                .slice(2, 8)}`;
+            const path = ext ? `webinars/${unique}.${ext}` : `webinars/${unique}`;
+
             const assetRes = await MyCoursesService.uploadCourseAsset(
                 courseId,
                 file,
-                "webinars", // путь в бакете, можешь поменять
+                path,
             );
             setUploading(false);
 
             const data = assetRes.data || {};
-            // пытаемся достать URL из разных возможных полей
             const videoUrl =
-                data.url || data.publicUrl || Object.values<string>(data)[0];
+                (data.url as string | undefined) ||
+                (data.publicUrl as string | undefined) ||
+                (Object.values(data)[0] as string | undefined);
 
             if (!videoUrl) {
                 setFormError("Бэк не вернул URL загруженного файла.");
@@ -79,7 +83,6 @@ export default function CourseWebinarEditor({
                 moduleId,
                 title: normalizedTitle,
                 type: "webinar",
-                orderIndex: orderIndex ?? undefined,
                 content: {
                     blocks: [
                         {
@@ -88,15 +91,15 @@ export default function CourseWebinarEditor({
                         },
                     ],
                 },
+                // orderIndex не задаём — бэк сам поставит в конец
             };
 
             await MyCoursesService.createWebinarLesson(courseId, payload);
 
             onCreated?.();
             onClose();
-            // Сбросим форму
+
             setTitle("");
-            setOrderIndex(null);
             setFile(null);
             setFormError(null);
         } catch (e) {
@@ -124,17 +127,6 @@ export default function CourseWebinarEditor({
                     placeholder="Например: Вебинар: Полиморфизм на практике"
                     value={title}
                     onChange={(e) => setTitle(e.currentTarget.value)}
-                />
-
-                <NumberInput
-                    label="Порядковый номер в модуле"
-                    description="Необязательно. Если не укажете — проставится автоматически на бэке."
-                    min={1}
-                    value={orderIndex}
-                    onChange={(value) => {
-                        const num = Number(value);
-                        setOrderIndex(Number.isFinite(num) ? num : null);
-                    }}
                 />
 
                 <FileInput

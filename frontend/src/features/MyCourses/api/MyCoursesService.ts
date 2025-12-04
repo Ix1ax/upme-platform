@@ -43,9 +43,11 @@ export type WebinarLessonPayload = {
  * Тело создания/редактирования курса (CourseRequest)
  */
 export interface CoursePayload {
-    title: string;
-    description: string;
+    title?: string;
+    description?: string;
+    previewUrl?: string | null;
 }
+
 
 /**
  * Тело создания/редактирования урока (LessonRequest).
@@ -168,9 +170,14 @@ export interface CourseLessonDTO {
 export interface CourseLessonPayload {
     title: string;
     description: string;
-    orderIndex: number;
     content: unknown;
+    /**
+     * Порядок необязательный: для новых уроков можно не отправлять,
+     * бэк сам поставит в конец. Для обновления тоже можно опустить.
+     */
+    orderIndex?: number;
 }
+
 
 export interface CreateCoursePayload {
     title: string;
@@ -239,10 +246,18 @@ class MyCoursesService {
     }*/);
     }
 
-    // PATCH /api/courses/{id} можно оставить JSON как у тебя было:
+    /**
+     * Обновить курс (title/description) без файлов.
+     * PATCH /api/courses/{id}
+     */
     updateCourse(courseID: string, payload: CoursePayload) {
-        return axiosInstance.patch<CourseDTO>(`/courses/${courseID}`, payload);
+        return axiosInstance.patch<CourseDTO>(
+            `/courses/${courseID}`,
+            payload,
+        );
     }
+
+
 
     /**
      * Удалить курс
@@ -301,6 +316,46 @@ class MyCoursesService {
 
         return axiosInstance.put<void>(`/courses/${courseID}/lessons`, parsed);
     }
+
+    /**
+     * Обновить обложку курса через PATCH /api/courses/{id}
+     * с отдельным полем preview (файл).
+     *
+     * Body: multipart/form-data
+     * - data    = JSON CourseRequest (минимум title + description)
+     * - preview = файл обложки
+     */
+    async setCoursePreview(courseId: string, file: File) {
+        // 1) получаем текущий курс, чтобы не потерять title/description
+        const { data: current } = await this.getCourseById(courseId);
+
+        const meta = {
+            title: current.title,
+            description: current.description,
+            // если в CourseRequest есть другие обязательные поля — добавь их сюда
+        };
+
+        // 2) собираем multipart/form-data
+        const formData = new FormData();
+        formData.append("data", JSON.stringify(meta));
+        formData.append("preview", file);
+
+        // 3) шлём PATCH с файлом превью
+        const { data: updatedCourse } = await axiosInstance.patch<CourseDTO>(
+            `/courses/${courseId}`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            },
+        );
+
+        return updatedCourse;
+    }
+
+
+
 
     // ======================
     // 📚 Блок: уроки курса (если понадобятся CRUD-ручки)

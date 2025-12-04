@@ -28,6 +28,7 @@ import type {
     TestSubmissionRequest,
 } from "@/features/course/api/CourseLearningService";
 import LessonContentRenderer from "@/features/course/ui/LessonContentRenderer";
+import CourseReviewsSection from "@/features/course/ui/CourseReviewsSection";
 
 type ViewMode = "lesson" | "test";
 
@@ -533,8 +534,16 @@ const CourseLearningSection = observer(() => {
                             )}
                         </Stack>
                     )}
+
+
                 </Paper>
+
             </Group>
+            {courseId && (
+                <Card withBorder radius="md" mt="lg">
+                    <CourseReviewsSection courseId={courseId} />
+                </Card>
+            )}
         </Stack>
     );
 });

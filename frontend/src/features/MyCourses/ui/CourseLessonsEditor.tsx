@@ -2,18 +2,21 @@
 
 import React, { useEffect, useState } from "react";
 import {
+    ActionIcon,
+    Badge,
     Button,
     Card,
     Group,
+    Loader,
+    ScrollArea,
     Stack,
     Text,
-    TextInput,
     Textarea,
-    NumberInput,
-    ScrollArea,
-    Badge,
-    Loader,
+    TextInput,
+    Tooltip,
 } from "@mantine/core";
+
+import { IconArrowDown, IconArrowUp } from "@tabler/icons-react";
 import MyCoursesService, {
     type CourseLessonDTO,
     type CourseLessonPayload,
@@ -21,46 +24,40 @@ import MyCoursesService, {
 import LessonRichTextEditor from "./LessonRichTextEditor";
 import CourseWebinarEditor from "./CourseWebinarEditor";
 
-
 type Props = {
     courseId: string;
 };
 
+// 🔥 orderIndex из формы убрали — он только на бэке
 type LessonFormState = {
     title: string;
     description: string;
-    orderIndex: number;
     contentHtml: string;
 };
 
 const DEFAULT_HTML = "<p>Напишите текст урока...</p>";
 
-const createEmptyForm = (orderIndex = 1): LessonFormState => ({
+const createEmptyForm = (): LessonFormState => ({
     title: "",
     description: "",
-    orderIndex,
     contentHtml: DEFAULT_HTML,
 });
 
-// аккуратно выдёргиваем html из любого content, который нам приходит с бэка
 // аккуратно выдёргиваем html из любого content, который нам приходит с бэка
 const extractHtmlFromContent = (content: unknown): string => {
     if (!content) return DEFAULT_HTML;
 
     if (typeof content === "string") {
-        // если вдруг на бэке просто строка
         return content || DEFAULT_HTML;
     }
 
     if (typeof content === "object") {
         const maybe = content as { html?: unknown; blocks?: any[] };
 
-        // обычный урок: { html: "<p>...</p>" }
         if (typeof maybe.html === "string" && maybe.html.trim().length > 0) {
             return maybe.html;
         }
 
-        // вебинар или сложный контент: ищем текстовый блок
         if (Array.isArray(maybe.blocks)) {
             const textBlock = maybe.blocks.find(
                 (b: any) =>
@@ -77,7 +74,6 @@ const extractHtmlFromContent = (content: unknown): string => {
 
     return DEFAULT_HTML;
 };
-
 
 const isWebinarLesson = (lesson: CourseLessonDTO): boolean => {
     const content: any = lesson.content;
@@ -104,15 +100,14 @@ const extractVideoUrlFromContent = (content: unknown): string | null => {
     return null;
 };
 
-
-
 const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
     const [lessons, setLessons] = useState<CourseLessonDTO[]>([]);
     const [selectedId, setSelectedId] = useState<string | "new">("new");
-    const [form, setForm] = useState<LessonFormState>(() => createEmptyForm(1));
+    const [form, setForm] = useState<LessonFormState>(() => createEmptyForm());
     const [isLoadingList, setIsLoadingList] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isReordering, setIsReordering] = useState(false); // 🔥 блокировка стрелок
     const [webinarModalOpen, setWebinarModalOpen] = useState(false);
     const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
 
@@ -130,16 +125,14 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                 setForm({
                     title: first.title ?? "",
                     description: first.description ?? "",
-                    orderIndex: first.orderIndex ?? 1,
                     contentHtml: extractHtmlFromContent(first.content),
                 });
-                setCurrentVideoUrl(extractVideoUrlFromContent(first.content)); // ← НОВОЕ
+                setCurrentVideoUrl(extractVideoUrlFromContent(first.content));
             } else {
                 setSelectedId("new");
-                setForm(createEmptyForm(1));
-                setCurrentVideoUrl(null); // ← НОВОЕ
+                setForm(createEmptyForm());
+                setCurrentVideoUrl(null);
             }
-
         } catch (e) {
             console.error("Не удалось загрузить уроки курса", e);
         } finally {
@@ -147,13 +140,29 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
         }
     };
 
-
-    // ------- Загрузка списка уроков --------
     useEffect(() => {
         loadLessons();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [courseId]);
 
+    // Загрузка изображения для урока → MinIO → URL
+    const handleUploadLessonImage = async (file: File): Promise<string> => {
+        const ext = file.name.split(".").pop();
+        const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const path = ext ? `lessons/${unique}.${ext}` : `lessons/${unique}`;
+
+        const res = await MyCoursesService.uploadCourseAsset(courseId, file, path);
+
+        const url =
+            (res.data.publicUrl as string | undefined) ??
+            (res.data.url as string | undefined);
+
+        if (!url) {
+            throw new Error("Backend не вернул publicUrl / url для изображения");
+        }
+
+        return url;
+    };
 
     // ------- Выбор урока из списка --------
     const handleSelectLesson = (lesson: CourseLessonDTO) => {
@@ -161,21 +170,17 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
         setForm({
             title: lesson.title ?? "",
             description: lesson.description ?? "",
-            orderIndex: lesson.orderIndex ?? 1,
             contentHtml: extractHtmlFromContent(lesson.content),
         });
-        setCurrentVideoUrl(extractVideoUrlFromContent(lesson.content)); // ← НОВОЕ
+        setCurrentVideoUrl(extractVideoUrlFromContent(lesson.content));
     };
-
 
     // ------- Создание нового урока --------
     const handleCreateNew = () => {
-        const nextOrder = lessons.length + 1;
         setSelectedId("new");
-        setForm(createEmptyForm(nextOrder));
-        setCurrentVideoUrl(null); // ← НОВОЕ
+        setForm(createEmptyForm());
+        setCurrentVideoUrl(null);
     };
-
 
     // ------- Обновление формы --------
     const updateForm = (patch: Partial<LessonFormState>) => {
@@ -199,7 +204,6 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
         let contentObject: any;
 
         if (isWebinar) {
-            // пытаемся достать видео из текущего контента, если нет — из стейта
             const videoUrl =
                 extractVideoUrlFromContent(existingLesson?.content) ??
                 currentVideoUrl;
@@ -213,7 +217,6 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                 });
             }
 
-            // текст из редактора
             blocks.push({
                 type: "text",
                 html: form.contentHtml?.trim() || DEFAULT_HTML,
@@ -224,7 +227,6 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                 blocks,
             };
         } else {
-            // обычный урок
             contentObject = {
                 type: "rich-text" as const,
                 version: 1,
@@ -235,9 +237,14 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
         const payload: CourseLessonPayload = {
             title: form.title.trim(),
             description: form.description.trim(),
-            orderIndex: form.orderIndex || 1,
             content: contentObject,
         };
+
+        // 🔥 порядок не спрашиваем у пользователя:
+        // для нового урока можно подсказать бэку индекс, иначе он сам расставит
+        if (!existingLesson) {
+            payload.orderIndex = lessons.length + 1;
+        }
 
         try {
             setIsSaving(true);
@@ -250,7 +257,7 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                 const created = res.data;
                 setLessons((prev) => [...prev, created]);
                 setSelectedId(created.id);
-                setCurrentVideoUrl(extractVideoUrlFromContent(created.content)); // на всякий
+                setCurrentVideoUrl(extractVideoUrlFromContent(created.content));
             } else {
                 const res = await MyCoursesService.updateCourseLesson(
                     courseId,
@@ -261,7 +268,7 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                 setLessons((prev) =>
                     prev.map((l) => (l.id === updated.id ? updated : l)),
                 );
-                setCurrentVideoUrl(extractVideoUrlFromContent(updated.content)); // ОБНОВИТЬ
+                setCurrentVideoUrl(extractVideoUrlFromContent(updated.content));
             }
         } catch (e) {
             console.error("Не удалось сохранить урок", e);
@@ -270,7 +277,6 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
             setIsSaving(false);
         }
     };
-
 
     const handleDelete = async () => {
         if (selectedId === "new") {
@@ -296,21 +302,61 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                 setForm({
                     title: first.title ?? "",
                     description: first.description ?? "",
-                    orderIndex: first.orderIndex ?? 1,
                     contentHtml: extractHtmlFromContent(first.content),
                 });
-                setCurrentVideoUrl(extractVideoUrlFromContent(first.content)); // ← НОВОЕ
+                setCurrentVideoUrl(extractVideoUrlFromContent(first.content));
             } else {
                 setSelectedId("new");
-                setForm(createEmptyForm(1));
-                setCurrentVideoUrl(null); // ← НОВОЕ
+                setForm(createEmptyForm());
+                setCurrentVideoUrl(null);
             }
-
         } catch (e) {
             console.error("Не удалось удалить урок", e);
             alert("Ошибка при удалении урока. Подробности в консоли.");
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    // ------- Перемещение уроков стрелочками --------
+    const moveLesson = async (lessonId: string, direction: "up" | "down") => {
+        const index = lessons.findIndex((l) => l.id === lessonId);
+        if (index === -1) return;
+
+        const targetIndex = direction === "up" ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= lessons.length) return;
+
+        const reordered = [...lessons];
+        const [moved] = reordered.splice(index, 1);
+        reordered.splice(targetIndex, 0, moved);
+
+        // пересчёт orderIndex локально
+        const withOrder = reordered.map((l, idx) => ({
+            ...l,
+            orderIndex: idx + 1,
+        }));
+
+        setLessons(withOrder);
+        setIsReordering(true);
+
+        try {
+            // простая синхронизация с бэком:
+            await Promise.all(
+                withOrder.map((lesson) =>
+                    MyCoursesService.updateCourseLesson(courseId, lesson.id, {
+                        title: lesson.title,
+                        description: lesson.description,
+                        content: lesson.content,
+                        orderIndex: lesson.orderIndex,
+                    }),
+                ),
+            );
+        } catch (e) {
+            console.error("Не удалось обновить порядок уроков", e);
+            // на всякий случай перечитаем список
+            await loadLessons();
+        } finally {
+            setIsReordering(false);
         }
     };
 
@@ -322,13 +368,16 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
             <Card withBorder radius="md" style={{ width: "30%", minWidth: 260 }}>
                 <Group position="apart" mb="sm">
                     <Text fw={600}>Уроки курса</Text>
-                    {isLoadingList && <Loader size="xs" />}
+                    {(isLoadingList || isReordering) && <Loader size="xs" />}
                 </Group>
 
                 <ScrollArea style={{ maxHeight: 400 }}>
                     <Stack gap="xs">
-                        {lessons.map((lesson) => {
-                            const webinar = isWebinarLesson(lesson); // ← добавить
+                        {lessons.map((lesson, index) => {
+                            const webinar = isWebinarLesson(lesson);
+
+                            const canMoveUp = index > 0 && !isReordering;
+                            const canMoveDown = index < lessons.length - 1 && !isReordering;
 
                             return (
                                 <Card
@@ -342,33 +391,82 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                                             selectedId === lesson.id
                                                 ? "var(--mantine-color-blue-5)"
                                                 : undefined,
+                                        transition: "border-color 120ms ease, box-shadow 120ms ease",
+                                        boxShadow:
+                                            selectedId === lesson.id
+                                                ? "0 0 0 1px rgba(37, 99, 235, 0.25)"
+                                                : "none",
                                     }}
                                     onClick={() => handleSelectLesson(lesson)}
                                 >
-                                    <Group position="apart" align="flex-start">
-                                        <Stack gap={4} style={{maxWidth: "80%"}}>
-                                            <Text size="sm" fw={600} lineClamp={2}>
-                                                {lesson.title || "Без названия"}
+                                    <Group wrap="nowrap" align="center" gap="sm">
+                                        {/* ЛЕВАЯ КОЛОНКА: стрелки + номер */}
+                                        <Stack
+                                            gap={4}
+                                            align="center"
+                                            style={{
+                                                padding: 4,
+                                                borderRadius: 999,
+                                                backgroundColor: "#f3f4f6",
+                                                minWidth: 32,
+                                            }}
+                                            onClick={(e) => e.stopPropagation()} // чтобы клик по стрелкам не выбирал карточку
+                                        >
+                                            <Tooltip label="Переместить вверх" withArrow openDelay={150}>
+                                                <ActionIcon
+                                                    size="xs"
+                                                    radius="xl"
+                                                    variant={canMoveUp ? "light" : "subtle"}
+                                                    color={canMoveUp ? "blue" : "gray"}
+                                                    disabled={!canMoveUp}
+                                                    onClick={() => moveLesson(lesson.id, "up")}
+                                                >
+                                                    <IconArrowUp size={14} />
+                                                </ActionIcon>
+                                            </Tooltip>
+
+                                            <Text size="xs" c="dimmed">
+                                                {index + 1}
                                             </Text>
-                                            <Text size="xs" c="dimmed" lineClamp={2}>
-                                                {lesson.description}
-                                            </Text>
-                                        </Stack>
-                                        <Stack gap={4} align="flex-end">
-                                            <Badge size="xs" variant="light">
-                                                #{lesson.orderIndex ?? 0}
-                                            </Badge>
-                                            {webinar && (
-                                                <Badge size="xs" color="violet" variant="outline">
-                                                    Вебинар
-                                                </Badge>
-                                            )}
+
+                                            <Tooltip label="Переместить вниз" withArrow openDelay={150}>
+                                                <ActionIcon
+                                                    size="xs"
+                                                    radius="xl"
+                                                    variant={canMoveDown ? "light" : "subtle"}
+                                                    color={canMoveDown ? "blue" : "gray"}
+                                                    disabled={!canMoveDown}
+                                                    onClick={() => moveLesson(lesson.id, "down")}
+                                                >
+                                                    <IconArrowDown size={14} />
+                                                </ActionIcon>
+                                            </Tooltip>
                                         </Stack>
 
+                                        {/* ПРАВАЯ ЧАСТЬ: текст и бейджи */}
+                                        <Group justify="space-between" align="flex-start" w="100%">
+                                            <Stack gap={4} style={{ maxWidth: "70%" }}>
+                                                <Text size="sm" fw={600} lineClamp={2}>
+                                                    {lesson.title || "Без названия"}
+                                                </Text>
+                                                <Text size="xs" c="dimmed" lineClamp={2}>
+                                                    {lesson.description}
+                                                </Text>
+                                            </Stack>
+
+                                            <Stack gap={4} align="flex-end">
+                                                {webinar && (
+                                                    <Badge size="xs" color="violet" variant="outline">
+                                                        Вебинар
+                                                    </Badge>
+                                                )}
+                                            </Stack>
+                                        </Group>
                                     </Group>
                                 </Card>
-                            )
+                            );
                         })}
+
 
                         {lessons.length === 0 && !isLoadingList && (
                             <Text size="sm" c="dimmed">
@@ -378,8 +476,13 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                     </Stack>
                 </ScrollArea>
 
-                <Group gap={"md"}>
-                    <Button mt="md" variant="outline" fullWidth onClick={handleCreateNew}>
+                <Group gap="md">
+                    <Button
+                        mt="md"
+                        variant="outline"
+                        fullWidth
+                        onClick={handleCreateNew}
+                    >
                         + Новый урок
                     </Button>
                     <Button
@@ -391,7 +494,6 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                         + Вебинар
                     </Button>
                 </Group>
-
             </Card>
 
             {/* --------- Форма урока --------- */}
@@ -418,26 +520,13 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                 </Group>
 
                 <Stack gap="sm">
-                    <Group grow align="flex-start">
-                        <TextInput
-                            label="Название"
-                            placeholder="Например: Введение"
-                            value={form.title}
-                            onChange={(e) => updateForm({ title: e.target.value })}
-                            required
-                        />
-                        <NumberInput
-                            label="Порядок"
-                            min={1}
-                            value={form.orderIndex}
-                            onChange={(val) =>
-                                updateForm({
-                                    orderIndex:
-                                        typeof val === "number" && !Number.isNaN(val) ? val : 1,
-                                })
-                            }
-                        />
-                    </Group>
+                    <TextInput
+                        label="Название"
+                        placeholder="Например: Введение"
+                        value={form.title}
+                        onChange={(e) => updateForm({ title: e.target.value })}
+                        required
+                    />
 
                     <Textarea
                         label="Краткое описание"
@@ -455,19 +544,20 @@ const CourseLessonsEditor: React.FC<Props> = ({ courseId }) => {
                         <LessonRichTextEditor
                             value={form.contentHtml}
                             onChange={(html) => updateForm({ contentHtml: html })}
+                            onUploadImage={handleUploadLessonImage}
                         />
                     </div>
                 </Stack>
             </Card>
+
             {/* Модалка создания вебинара */}
             <CourseWebinarEditor
                 courseId={courseId}
-                moduleId=""              // модулей пока нет, можно оставить пустую строку
+                moduleId=""
                 opened={webinarModalOpen}
                 onClose={() => setWebinarModalOpen(false)}
-                onCreated={loadLessons}  // после создания перезагрузка списка уроков
+                onCreated={loadLessons}
             />
-
         </Group>
     );
 };

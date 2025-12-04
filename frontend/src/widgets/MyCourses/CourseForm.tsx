@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Button, Paper, Stack, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
@@ -32,6 +33,20 @@ export default function CourseForm({
         },
     });
 
+    // 🔥 когда приходят initial из EditCoursePage – закидываем их в форму
+    useEffect(() => {
+        if (!initial) return;
+
+        const next = {
+            title: initial.title ?? "",
+            description: initial.description ?? "",
+        };
+
+        form.setValues(next);
+        // чтобы форма не считалась "изменённой" сразу после загрузки
+        form.resetDirty(next);
+    }, [initial]);
+
     const handleSubmit = (values: CourseFormValues) => {
         onSubmit({
             title: values.title.trim(),
@@ -57,11 +72,7 @@ export default function CourseForm({
                         {...form.getInputProps("description")}
                     />
 
-                    <Button
-                        type="submit"
-                        loading={loading}
-                        w="fit-content"
-                    >
+                    <Button type="submit" loading={loading} w="fit-content">
                         {submitLabel}
                     </Button>
                 </Stack>

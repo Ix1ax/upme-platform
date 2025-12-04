@@ -9,7 +9,7 @@ import CourseLearningService, {
     type CourseProgressResponse,
     type CourseTestContentResponse,
     type TestAttemptResponse,
-    type TestSubmissionRequest,
+    type TestSubmissionRequest, type CourseReviewDTO,
 } from "@/features/course/api/CourseLearningService";
 
 class CourseLearningStore {
@@ -31,6 +31,12 @@ class CourseLearningStore {
     isLoadingTest = false;
     isSubmittingTest = false;
     isEnrolling = false;
+
+
+    reviews: CourseReviewDTO[] = [];
+    isReviewsLoading = false;
+    isReviewSaving = false;
+    reviewError: string | null = null;
 
     constructor() {
         makeAutoObservable(this, {}, { autoBind: true });
@@ -54,6 +60,50 @@ class CourseLearningStore {
         // сюда можно добавить реальную логику.
         return new Set<string>();
     }
+
+    async loadReviews(courseId: string) {
+        this.isReviewsLoading = true;
+        this.reviewError = null;
+
+        try {
+            const res = await CourseLearningService.getCourseReviews(courseId);
+            this.reviews = res.data ?? [];
+        } catch (e) {
+            console.error("Не удалось загрузить отзывы курса", e);
+            this.reviewError = "Не удалось загрузить отзывы курса";
+            this.reviews = [];
+        } finally {
+            this.isReviewsLoading = false;
+        }
+    }
+
+    async submitReview(courseId: string, rating: number, comment: string) {
+        this.isReviewSaving = true;
+        this.reviewError = null;
+
+        try {
+            await CourseLearningService.upsertCourseReview(courseId, {
+                rating,
+                comment,
+            });
+            // после успешного POST подгружаем список заново
+            await this.loadReviews(courseId);
+        } catch (e: any) {
+            console.error("Не удалось отправить отзыв", e);
+
+            if (e?.response?.status === 403) {
+                this.reviewError =
+                    "Оставить отзыв можно только после полного прохождения курса.";
+            } else {
+                this.reviewError = "Ошибка при отправке отзыва.";
+            }
+
+            throw e; // чтобы в UI можно было показать тост/alert
+        } finally {
+            this.isReviewSaving = false;
+        }
+    }
+
 
     // --- загрузка курса/уроков/прогресса "одним махом" ---
 

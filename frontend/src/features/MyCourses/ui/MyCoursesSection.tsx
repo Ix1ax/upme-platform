@@ -29,7 +29,7 @@ const MyCoursesSection = observer(() => {
             <Group justify="space-between">
                 <Title order={2} mb="md">Мои курсы</Title>
                 <Button  onClick={() => nav(STATIC_LINKS.MY_COURSES_NEW)}>
-                    +
+                    + Новый курс
                 </Button>
             </Group>
             <Paper p="md" radius="lg" withBorder bg="#fff">
